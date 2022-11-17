@@ -5,7 +5,6 @@ module LitXSpec
 import LitX.Prelude
 
 import LitX
-import LitX.Options (parseOptions)
 import Test.Hspec
 
 spec :: Spec
@@ -13,9 +12,8 @@ spec = do
     describe "litx" $ do
         it "processes our example correctly" $ do
             let tmp = "/tmp/litx-test.bash"
-                options = ["--input", "files/examples.md", "--output", tmp]
 
-            litx =<< parseOptions options
+            litx ["--input", "files/example.md", "--output", tmp]
 
             actual <- readFile tmp
             expected <- readFile "files/example.bash"

@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module LitX
     ( litx
     ) where
@@ -6,33 +8,32 @@ import LitX.Prelude
 
 import CMark
 import LitX.CodeBlock
+import LitX.Execute
+import LitX.Language
 import LitX.Options
+import LitX.Options.Pragma
 
-litx :: MonadIO m => Options -> m ()
-litx options = do
-    input <- case oInput options of
-        InputStdin -> getContents
-        InputFile p -> readFile p
+litx :: MonadUnliftIO m => [String] -> m ()
+litx args = do
+    options <- parseOptions args
 
-    let node = commonmarkToNode cmarkOptions input
+    (path, markdown) <- case getLast $ oInput options of
+        InputStdin -> ("<stdin>", ) <$> getContents
+        InputFile p -> (p, ) <$> readFile p
 
-    Options {..} <- addPragmaOptions node options
+    let node = commonmarkToNode [] markdown
 
-    let blocks = getCodeBlocks oCodeBlockTag node
-        script =
-            renderShebang oShebang
-                <> "\n"
-                <> unPreamble oPreamble
-                <> "\n\n"
-                <> renderCodeBlocks blocks
+    Options {..} <- addPragmaOptions options node
 
-    case oExecutionMode of
-        ExecuteStdin{} -> undefined -- {script} | {cmd} {arg...}
-        ExecuteProcess{} -> undefined -- tempfile + {cmd} {arg...}
-        NoExecute output -> case output of
-            OutputNone -> pure ()
-            OutputStdout -> putStr script
-            OutputFile p -> writeFile p script
+    let language = getLast oLanguage
+        executeOptions =
+            appEndo oModExecuteOptions $ languageExecuteOptions language
 
-cmarkOptions :: [CMarkOption]
-cmarkOptions = []
+    executeScript executeOptions $ renderCodeBlocks $ getCodeBlocks
+        path
+        language
+        node
+
+addPragmaOptions :: MonadIO m => Options -> Node -> m Options
+addPragmaOptions options =
+    maybe (pure options) (fmap (options <>) . parseOptions) . getPragmaArgs

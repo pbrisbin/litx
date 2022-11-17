@@ -5,7 +5,7 @@
 ###
 set -euo pipefail
 
-# source=files/example.md:28
+# source=files/example.md:26
 export ENV=$1
 export AWS_PROFILE=freckle
 
@@ -13,11 +13,11 @@ psql_() {
   ../tools/run-in-ssh psql "$@"
 }
 
-# source=files/example.md:41
+# source=files/example.md:39
 psql_ -f ./scripts/upgrade/drop-reg-types.sql
 
-# source=files/example.md:47
+# source=files/example.md:45
 stackctl --filter "..." deploy --no-confirm
 
-# source=files/example.md:53
+# source=files/example.md:51
 psql_ -f ./scripts/upgrade/add-reg-types.sql

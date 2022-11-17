@@ -1,10 +1,8 @@
-<!-- litx --bash
+<!-- litx --language=bash -->
+<!--
 
-We can declare options by in-file pragma. --bash is a synonym for
-
-  --shebang="/usr/bin/env bash"
-  --preamble="set -euo pipfail"
-  --codeblock-tag=bash
+We can declare additional options by in-file pragma. It must be a comment all by
+itself that contains only "litx [option...]" surrounded by whitespace.
 
 -->
 
