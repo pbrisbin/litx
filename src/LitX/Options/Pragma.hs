@@ -25,6 +25,3 @@ htmlToLitX html = do
 
 stripAround :: Text -> Text -> Text -> Maybe Text
 stripAround prefix suffix = T.stripPrefix prefix <=< T.stripSuffix suffix
-
-hush :: Either e a -> Maybe a
-hush = either (const Nothing) Just

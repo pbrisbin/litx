@@ -1,5 +1,6 @@
 module LitX.CodeBlock
     ( CodeBlock
+    , codeBlockLanguage
     , getCodeBlocks
     , renderCodeBlocks
     ) where
@@ -17,13 +18,17 @@ data CodeBlock = CodeBlock
     , cbContent :: Text
     }
 
-getCodeBlocks :: FilePath -> Language -> Node -> [CodeBlock]
-getCodeBlocks path language = walkNodes $ nodeToCodeBlock path language
+codeBlockLanguage :: CodeBlock -> Language
+codeBlockLanguage = cbLanguage
 
-nodeToCodeBlock :: FilePath -> Language -> Node -> Maybe CodeBlock
-nodeToCodeBlock path language = \case
-    Node mPosInfo (CODE_BLOCK info content) _
-        | info `matchesLanguage` language -> Just CodeBlock
+getCodeBlocks :: FilePath -> Node -> [CodeBlock]
+getCodeBlocks path = walkNodes $ nodeToCodeBlock path
+
+nodeToCodeBlock :: FilePath -> Node -> Maybe CodeBlock
+nodeToCodeBlock path = \case
+    Node mPosInfo (CODE_BLOCK info content) _ -> do
+        language <- hush $ readLanguage $ unpack info
+        pure CodeBlock
             { cbLanguage = language
             , cbPath = path
             , cbLine = startLine <$> mPosInfo

@@ -7,11 +7,23 @@ module LitX
 import LitX.Prelude
 
 import CMark
+import qualified Data.Monoid as Monoid
 import LitX.CodeBlock
 import LitX.Execute
 import LitX.Language
 import LitX.Options
 import LitX.Options.Pragma
+import UnliftIO.Exception (Exception(..), throwIO)
+
+data LanguageUnknown = LanguageUnknown
+    deriving stock Show
+
+instance Exception LanguageUnknown where
+    displayException _ =
+        "Unable to determine source language. "
+            <> "Please pass --language, "
+            <> "set it as a pragma in the source file, "
+            <> "and ensure you have at least one code block"
 
 litx :: MonadUnliftIO m => [String] -> m ()
 litx args = do
@@ -22,17 +34,22 @@ litx args = do
         InputFile p -> (p, ) <$> readFile p
 
     let node = commonmarkToNode [] markdown
+        blocks = getCodeBlocks path node
 
     Options {..} <- addPragmaOptions options node
 
-    let language = getLast oLanguage
+    language <-
+        maybe (throwIO LanguageUnknown) pure
+        $ Monoid.getLast oLanguage
+        <|> mostFrequentBy codeBlockLanguage blocks
+
+    let
         executeOptions =
             appEndo oModExecuteOptions $ languageExecuteOptions language
 
-    executeScript executeOptions $ renderCodeBlocks $ getCodeBlocks
-        path
-        language
-        node
+    executeScript executeOptions $ renderCodeBlocks $ filter
+        ((== language) . codeBlockLanguage)
+        blocks
 
 addPragmaOptions :: MonadIO m => Options -> Node -> m Options
 addPragmaOptions options =

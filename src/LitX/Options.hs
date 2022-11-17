@@ -8,13 +8,14 @@ module LitX.Options
 
 import LitX.Prelude
 
+import qualified Data.Monoid as Monoid
 import LitX.Execute
 import LitX.Language
 import Options.Applicative
 
 data Options = Options
     { oInput :: Last Input
-    , oLanguage :: Last Language
+    , oLanguage :: Monoid.Last Language
     , oModExecuteOptions :: Endo ExecuteOptions
     }
     deriving stock Generic
@@ -54,11 +55,11 @@ parser = Options
         <> value InputStdin
         <> showDefaultWith showInput
         ))
-    <*> (Last <$> langOption
+    <*> (Monoid.Last <$> optional (langOption
         (  short 'l'
         <> long "language"
         <> help "Extract and execute code blocks in this language"
-        ))
+        )))
     <*> (mconcat <$> sequenceA
         [ optionalEndo setOutput (strOption
             (  short 'o'
