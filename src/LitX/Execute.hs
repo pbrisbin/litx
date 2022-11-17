@@ -78,7 +78,7 @@ executeScript ExecuteOptions {..} body = do
 
     case eoExecuteMode of
         Execute cmd -> do
-            let !bs = BSL.fromStrict $ encodeUtf8 script
+            let bs = BSL.fromStrict $! encodeUtf8 script
 
             runProcess_ $ clearEnv $ setStdin (byteStringInput bs) $ proc
                 cmd
