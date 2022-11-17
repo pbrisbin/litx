@@ -84,6 +84,7 @@ Available options:
 
 - [ ] Add `--check` for (e.g.) running ShellCheck on output
 - [ ] Add `--{offset,skip}=[-]N` to target specific code blocks by index
+- [ ] `<!-- lintx: ignore -->` pragmas
 
 ---
 
