@@ -78,16 +78,11 @@ executeScript ExecuteOptions {..} body = do
 
     case eoExecuteMode of
         Execute cmd -> do
-            let bs = BSL.fromStrict $! encodeUtf8 script
-
-            runProcess_ $ clearEnv $ setStdin (byteStringInput bs) $ proc
-                cmd
-                eoExecuteArgs
-
+            let input = byteStringInput $ BSL.fromStrict $! encodeUtf8 script
+            runProcess_ $ clearEnv $ setStdin input $ proc cmd eoExecuteArgs
         NoExecute -> pure ()
   where
     script = "#!" <> eoShebang <> eoBanner <> eoPreamble <> "\n\n" <> body
-
     clearEnv = case eoInheritEnv of
         InheritEnv -> id
         Don'tInheritEnv -> setEnv []

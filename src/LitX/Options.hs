@@ -89,6 +89,10 @@ parser = Options
             <> help "Pass additional arguments when executing"
             <> metavar "ARG"
             ))
+        , Dual . Endo . (inheritEnvL .~) <$> flag InheritEnv Don'tInheritEnv
+            (  long "exec-no-env"
+            <> help "Don't inherit ENV in the executed process"
+            )
         , optionalEndo (shebangL .~) (strOption
             (  long "shebang"
             <> metavar "TEXT"
