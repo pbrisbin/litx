@@ -7,7 +7,7 @@ module LitX.Execute
     , Output(..)
     , executeScript
 
-    -- * Eases construnction of @'Endo' 'ExecuteMode'@ in options parsing
+    -- * Ease construction of @'Endo' 'ExecuteOptions'@ in options parsing
     , shebangL
     , bannerL
     , preambleL
