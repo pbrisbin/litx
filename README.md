@@ -42,19 +42,19 @@ Build and execute the code-blocks in `op.md`:
 ```console
 litx <./op.md
 
-litx --input ./op.md
+litx -i - <./op.md
 
-litx --input - <./op.md
+litx -i ./op.md
 ```
 
 Build the code-blocks in `op.md` into `op.bash`, do not execute it:
 
 ```console
+litx -o - <./op.md >./op.bash
+
+litx -o ./op.bash <./op.md
+
 litx --exec cat <./.op.md >./op.bash
-
-litx --output ./op.bash <./op.md
-
-litx --input - --output - <./op.md >./op.bash
 ```
 
 ## Complete Usage
@@ -79,6 +79,11 @@ Available options:
   --preamble TEXT          Change the preamble (e.g. 'set -e')
   -h,--help                Show this help text
 ```
+
+## Roadmap
+
+- [ ] Add `--check` for (e.g.) running ShellCheck on output
+- [ ] Add `--{offset,skip}=[-]N` to target specific code blocks by index
 
 ---
 
