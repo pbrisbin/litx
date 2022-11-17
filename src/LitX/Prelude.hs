@@ -5,6 +5,7 @@ module LitX.Prelude
     , snoc
     , hush
     , mostFrequentBy
+    , fromMaybeM
 
     -- * IO
     , putStr
@@ -54,6 +55,9 @@ mostFrequentBy f =
         . Map.fromListWith (<>)
         . map pair
     where pair a = (f a, Sum @Int 1)
+
+fromMaybeM :: Monad m => m a -> m (Maybe a) -> m a
+fromMaybeM ma mma = maybe ma pure =<< mma
 
 getContents :: MonadIO m => m Text
 getContents = liftIO T.getContents

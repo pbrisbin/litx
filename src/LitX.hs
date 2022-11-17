@@ -33,7 +33,8 @@ litx args = do
     Options {..} <- addPragmaOptions options node
 
     language <-
-        maybe (throwIO LanguageUnknown) pure
+        fromMaybeM (throwIO LanguageUnknown)
+        $ pure
         $ Monoid.getLast oLanguage
         <|> mostFrequentBy codeBlockLanguage blocks
 
