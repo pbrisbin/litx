@@ -1,0 +1,137 @@
+cabal-version: 1.18
+
+-- This file has been generated from package.yaml by hpack version 0.35.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           litx
+version:        0.0.0.0
+description:    Please see <https://github.com/pbrisbin/litx#readme>
+homepage:       https://github.com/pbrisbin/litx#readme
+bug-reports:    https://github.com/pbrisbin/litx/issues
+author:         Patrick Brisbin
+maintainer:     pbrisbin@gmail.com
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-doc-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/pbrisbin/litx
+
+library
+  other-modules:
+      Paths_litx
+  hs-source-dirs:
+      src
+  default-extensions:
+      BangPatterns
+      DataKinds
+      DeriveAnyClass
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveLift
+      DeriveTraversable
+      DerivingStrategies
+      DerivingVia
+      FlexibleContexts
+      FlexibleInstances
+      GADTs
+      GeneralizedNewtypeDeriving
+      LambdaCase
+      MultiParamTypeClasses
+      NoImplicitPrelude
+      NoMonomorphismRestriction
+      OverloadedStrings
+      RankNTypes
+      RecordWildCards
+      ScopedTypeVariables
+      StandaloneDeriving
+      TypeApplications
+      TypeFamilies
+  ghc-options: -fwrite-ide-info -Weverything -Wno-all-missed-specialisations -Wno-missing-import-lists -Wno-missing-local-signatures -Wno-missing-safe-haskell-mode -Wno-prepositive-qualified-module -Wno-unsafe -optP-Wno-nonportable-include-path
+  build-depends:
+      base ==4.*
+  default-language: Haskell2010
+
+executable litx
+  main-is: Main.hs
+  other-modules:
+      Paths_litx
+  hs-source-dirs:
+      app
+  default-extensions:
+      BangPatterns
+      DataKinds
+      DeriveAnyClass
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveLift
+      DeriveTraversable
+      DerivingStrategies
+      DerivingVia
+      FlexibleContexts
+      FlexibleInstances
+      GADTs
+      GeneralizedNewtypeDeriving
+      LambdaCase
+      MultiParamTypeClasses
+      NoImplicitPrelude
+      NoMonomorphismRestriction
+      OverloadedStrings
+      RankNTypes
+      RecordWildCards
+      ScopedTypeVariables
+      StandaloneDeriving
+      TypeApplications
+      TypeFamilies
+  ghc-options: -fwrite-ide-info -Weverything -Wno-all-missed-specialisations -Wno-missing-import-lists -Wno-missing-local-signatures -Wno-missing-safe-haskell-mode -Wno-prepositive-qualified-module -Wno-unsafe -optP-Wno-nonportable-include-path -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base ==4.*
+    , litx
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_litx
+  hs-source-dirs:
+      test
+  default-extensions:
+      BangPatterns
+      DataKinds
+      DeriveAnyClass
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveLift
+      DeriveTraversable
+      DerivingStrategies
+      DerivingVia
+      FlexibleContexts
+      FlexibleInstances
+      GADTs
+      GeneralizedNewtypeDeriving
+      LambdaCase
+      MultiParamTypeClasses
+      NoImplicitPrelude
+      NoMonomorphismRestriction
+      OverloadedStrings
+      RankNTypes
+      RecordWildCards
+      ScopedTypeVariables
+      StandaloneDeriving
+      TypeApplications
+      TypeFamilies
+  ghc-options: -fwrite-ide-info -Weverything -Wno-all-missed-specialisations -Wno-missing-import-lists -Wno-missing-local-signatures -Wno-missing-safe-haskell-mode -Wno-prepositive-qualified-module -Wno-unsafe -optP-Wno-nonportable-include-path
+  build-depends:
+      base ==4.*
+    , hspec
+    , litx
+  default-language: Haskell2010

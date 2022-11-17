@@ -1,0 +1,75 @@
+name: litx
+version: 0.0.0.0
+github: pbrisbin/litx
+license: MIT
+author: Patrick Brisbin
+maintainer: pbrisbin@gmail.com
+
+extra-doc-files:
+  - README.md
+  - CHANGELOG.md
+
+description: Please see <https://github.com/pbrisbin/litx#readme>
+
+dependencies:
+  - base >= 4 && < 5
+
+ghc-options:
+  - -fwrite-ide-info
+  - -Weverything
+  - -Wno-all-missed-specialisations
+  - -Wno-missing-import-lists
+  - -Wno-missing-local-signatures
+  - -Wno-missing-safe-haskell-mode
+  - -Wno-prepositive-qualified-module
+  - -Wno-unsafe
+  - -optP-Wno-nonportable-include-path # workaround [Filename case on macOS · Issue #4739 · haskell/cabal](https://github.com/haskell/cabal/issues/4739)
+
+default-extensions:
+  - BangPatterns
+  - DataKinds
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveLift
+  - DeriveTraversable
+  - DerivingStrategies
+  - DerivingVia
+  - FlexibleContexts
+  - FlexibleInstances
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - LambdaCase
+  - MultiParamTypeClasses
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - OverloadedStrings
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - TypeApplications
+  - TypeFamilies
+
+library:
+  source-dirs: src
+
+executables:
+  litx:
+    main: Main.hs
+    source-dirs: app
+    dependencies:
+      - litx
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+
+tests:
+  spec:
+    main: Spec.hs
+    source-dirs: test
+    dependencies:
+      - hspec
+      - litx
