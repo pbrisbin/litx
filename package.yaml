@@ -54,6 +54,9 @@ default-extensions:
 
 library:
   source-dirs: src
+  dependencies:
+    - cmark
+    - text
 
 executables:
   litx:
