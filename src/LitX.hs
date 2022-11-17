@@ -13,17 +13,11 @@ import LitX.Execute
 import LitX.Language
 import LitX.Options
 import LitX.Options.Pragma
-import UnliftIO.Exception (Exception(..), throwIO)
+import UnliftIO.Exception (Exception, throwIO)
 
 data LanguageUnknown = LanguageUnknown
     deriving stock Show
-
-instance Exception LanguageUnknown where
-    displayException _ =
-        "Unable to determine source language. "
-            <> "Please pass --language, "
-            <> "set it as a pragma in the source file, "
-            <> "and ensure you have at least one code block"
+    deriving anyclass Exception
 
 litx :: MonadUnliftIO m => [String] -> m ()
 litx args = do
