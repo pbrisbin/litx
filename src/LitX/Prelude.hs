@@ -19,19 +19,18 @@ module LitX.Prelude
 import Prelude as X hiding (getContents, putStr, readFile, writeFile)
 
 import Control.Applicative as X ((<|>))
-import Control.Lens as X
-    (Lens', Prism', lens, prism', (&), (.~), (<&>), (<>~), (?~), (^.))
 import Control.Monad as X (unless, void, when, (<=<))
 import Control.Monad.IO.Class as X (MonadIO(..))
 import Control.Monad.IO.Unlift as X (MonadUnliftIO)
 import Data.Foldable as X (fold)
 import Data.Maybe as X (catMaybes, fromMaybe, listToMaybe)
-import Data.Semigroup as X (Endo(..), First(..), Last(..), Sum(..))
+import Data.Semigroup as X (First(..), Last(..), Sum(..))
 import Data.Semigroup.Generic as X (GenericSemigroupMonoid(..))
 import Data.String as X (IsString(..))
 import Data.Text as X (Text, pack, unpack)
 import Data.Text.Encoding as X (encodeUtf8)
 import GHC.Generics as X (Generic)
+import Lens.Micro as X (Lens', lens, (&), (.~), (<&>), (<>~), (?~), (^.))
 
 import CMark (Node(..))
 import Data.List (sortOn)

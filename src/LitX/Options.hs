@@ -4,11 +4,13 @@ module LitX.Options
     ( Options(..)
     , Input(..)
     , parseOptions
+    , appEndoDual
     ) where
 
 import LitX.Prelude
 
 import qualified Data.Monoid as Monoid
+import Data.Semigroup (Dual(..), Endo(..))
 import LitX.Execute
 import LitX.Language
 import Options.Applicative
@@ -16,10 +18,14 @@ import Options.Applicative
 data Options = Options
     { oInput :: Last Input
     , oLanguage :: Monoid.Last Language
-    , oModExecuteOptions :: Endo ExecuteOptions
+    , oModExecuteOptions :: Dual (Endo ExecuteOptions)
+    -- ^ We use 'Dual' so that application order is reversed for "last wins"
     }
     deriving stock Generic
     deriving Semigroup via GenericSemigroupMonoid Options
+
+appEndoDual :: Dual (Endo a) -> a -> a
+appEndoDual = appEndo . getDual
 
 data Input
     = InputStdin
@@ -104,10 +110,10 @@ setOutput :: Output -> ExecuteOptions -> ExecuteOptions
 setOutput o eo = eo & outputL .~ o & executeModeL .~ NoExecute
 
 setExec :: String -> ExecuteOptions -> ExecuteOptions
-setExec cmd eo = eo & executeModeL . _Execute .~ cmd & executeArgsL .~ []
+setExec cmd eo = eo & executeModeL .~ Execute cmd & executeArgsL .~ []
 
-optionalEndo :: (a -> b -> b) -> Parser a -> Parser (Endo b)
-optionalEndo f p = maybe mempty (Endo . f) <$> optional p
+optionalEndo :: (a -> b -> b) -> Parser a -> Parser (Dual (Endo b))
+optionalEndo f p = maybe mempty (Dual . Endo . f) <$> optional p
 
-manyEndo :: ([a] -> b -> b) -> Parser a -> Parser (Endo b)
-manyEndo f p = Endo . f <$> many p
+manyEndo :: ([a] -> b -> b) -> Parser a -> Parser (Dual (Endo b))
+manyEndo f p = Dual . Endo . f <$> many p

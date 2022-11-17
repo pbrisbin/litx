@@ -3,7 +3,6 @@
 module LitX.Execute
     ( ExecuteOptions(..)
     , ExecuteMode(..)
-    , _Execute
     , InheritEnv(..)
     , Output(..)
     , executeScript
@@ -57,11 +56,6 @@ outputL = lens eoOutput $ \x y -> x { eoOutput = y }
 data ExecuteMode
     = Execute String
     | NoExecute
-
-_Execute :: Prism' ExecuteMode String
-_Execute = prism' Execute $ \case
-    Execute x -> Just x
-    _ -> Nothing
 
 data InheritEnv
     = InheritEnv

@@ -45,7 +45,7 @@ litx args = do
 
     let
         executeOptions =
-            appEndo oModExecuteOptions $ languageExecuteOptions language
+            appEndoDual oModExecuteOptions $ languageExecuteOptions language
 
     executeScript executeOptions $ renderCodeBlocks $ filter
         ((== language) . codeBlockLanguage)

@@ -67,7 +67,7 @@ library
     , bytestring
     , cmark
     , containers
-    , lens
+    , microlens
     , optparse-applicative
     , semigroups
     , shellwords
