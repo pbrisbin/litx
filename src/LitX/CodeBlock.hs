@@ -1,14 +1,14 @@
 module LitX.CodeBlock
     ( CodeBlock
+    , codeBlock
     , codeBlockLanguage
-    , getCodeBlocks
-    , renderCodeBlocks
+    , codeBlockPath
+    , codeBlockLine
+    , codeBlockContent
     ) where
 
 import LitX.Prelude
 
-import CMark
-import qualified Data.Text as T
 import LitX.Language
 
 data CodeBlock = CodeBlock
@@ -18,34 +18,17 @@ data CodeBlock = CodeBlock
     , cbContent :: Text
     }
 
+codeBlock :: Language -> FilePath -> Maybe Int -> Text -> CodeBlock
+codeBlock = CodeBlock
+
 codeBlockLanguage :: CodeBlock -> Language
 codeBlockLanguage = cbLanguage
 
-getCodeBlocks :: FilePath -> Node -> [CodeBlock]
-getCodeBlocks path = walkNodes $ nodeToCodeBlock path
+codeBlockPath :: CodeBlock -> FilePath
+codeBlockPath = cbPath
 
-nodeToCodeBlock :: FilePath -> Node -> Maybe CodeBlock
-nodeToCodeBlock path = \case
-    Node mPosInfo (CODE_BLOCK info content) _ -> do
-        language <- hush $ readLanguage $ unpack info
-        pure CodeBlock
-            { cbLanguage = language
-            , cbPath = path
-            , cbLine = startLine <$> mPosInfo
-            , cbContent = content
-            }
-    _ -> Nothing
+codeBlockLine :: CodeBlock -> Maybe Int
+codeBlockLine = cbLine
 
-renderCodeBlocks :: [CodeBlock] -> Text
-renderCodeBlocks = T.intercalate "\n" . map renderCodeBlock
-
-renderCodeBlock :: CodeBlock -> Text
-renderCodeBlock CodeBlock {..} = maybe "" sourceComment cbLine <> cbContent
-  where
-    sourceComment l =
-        commentInLanguage cbLanguage
-            $ "source="
-            <> pack cbPath
-            <> ":"
-            <> pack (show l)
-            <> "\n"
+codeBlockContent :: CodeBlock -> Text
+codeBlockContent = cbContent

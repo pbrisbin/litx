@@ -30,7 +30,9 @@ library
       LitX.Language
       LitX.Options
       LitX.Options.Pragma
+      LitX.Parse
       LitX.Prelude
+      LitX.Render
   other-modules:
       Paths_litx
   hs-source-dirs:
