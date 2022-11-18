@@ -26,22 +26,22 @@ litx - execute Literate Markdown programs
 
 ## Language Presets
 
-**\-l**, **\--language** *\<LANGUAGE>*\
+If not specified (see below), LitX uses the most common supported language
+across all code blocks in the source document. If there are none, an empty
+script will be produced and executed as *bash*, which is fairly inconsequential.
 
-> Process *LANGUAGE* code blocks from Markdown. The default will be the most
-> frequent (supported) language present, or *bash* if there are none. This case
-> will produce and execute an empty script, so the final default doesn't matter.
+**\-l**, **\--language**=*bash*, **\--bash**
 
-**\--bash**\
-
-> Equivalent to **\--language=bash**, which is equivalent to:
+> Equivalent to:
 >
-> *\--shebang=\"/usr/bin/env bash\"*\
-> *\--preamble=\"set -euo pipefail\"*\
-> *\--comment-chars=\"#\"*\
-> *\--exec=\"bash\"*\
-> *\--arg=\"-s\"*\
-> *\--arg=\"-\"*
+> **\--shebang**=*\"/usr/bin/env bash\"*\
+> **\--preamble**=*\"set -euo pipefail\"*\
+> **\--comment-chars**=*\"#\"*\
+> **\--exec**=*\"bash\"*\
+> **\--arg**=*\"-s\"*\
+> **\--arg**=*\"-\"*
+
+Additional languages coming soon.
 
 ## Execution Options
 
@@ -70,7 +70,7 @@ litx - execute Literate Markdown programs
 
 **\--preamble** *\<TEXT>*\
 
-> Set the preamble. Default is language specific.
+> Set the preamble. Default is language-specific.
 
 **\--comment-chars** *\<TEXT>*\
 
@@ -79,7 +79,9 @@ litx - execute Literate Markdown programs
 **\--exec** *\<COMMAND>*\
 
 > Set the command to use to execute the script. Default is language-specific.
-> Passing this option will clear any arguments. For example,
+> Passing this option will clear any arguments.
+>
+> For example,
 >
 > ```
 > --bash
@@ -110,6 +112,8 @@ litx - execute Literate Markdown programs
 > ```
 >
 > to achieve what (probably) you want.
+>
+> **NOTE**: The script is always passed to the command as its *stdin*.
 
 **\--arg** *\<ARG>*\
 
@@ -122,7 +126,28 @@ litx - execute Literate Markdown programs
 
 > Don't inherit the current process's environment in the executed process.
 
-## Document Pragmas
+# PRAGMAS
+
+LitX reads directives from HTML comment in the source documents.
+
+## Options
+
+The first comment that begins with the word *litx*, if present, will be parsed
+for command-line flags:
+
+```
+<!-- litx --bash -->
+
+<!-- litx
+     --bash
+     --arg="--foo bar"
+     --no-env
+-->
+```
+
+These options are applied after the inferred language preset, but before any
+other command-line options (including an explicit language preset). *All* words
+will be considered options, so ensure there is not extra content in the comment.
 
 # ENVIRONMENT
 
