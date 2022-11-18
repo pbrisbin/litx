@@ -14,8 +14,8 @@ overridden.
     --preamble="set -euo pipefail"
     --comment-char="#"
     --exec="bash"
-    --exec-arg="-s"
-    --exec-arg="-"
+    --arg="-s"
+    --arg="-"
 
 -->
 
