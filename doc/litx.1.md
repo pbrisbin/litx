@@ -38,6 +38,7 @@ litx - execute Literate Markdown programs
 >
 > *\--shebang=\"/usr/bin/env bash\"*\
 > *\--preamble=\"set -euo pipefail\"*\
+> *\--comment-chars=\"#\"*\
 > *\--exec=\"bash\"*\
 > *\--arg=\"-s\"*\
 > *\--arg=\"-\"*
@@ -70,6 +71,10 @@ litx - execute Literate Markdown programs
 **\--preamble** *\<TEXT>*\
 
 > Set the preamble. Default is language specific.
+
+**\--comment-chars** *\<TEXT>*\
+
+> Set the characters used to prefix line comments.
 
 **\--exec** *\<COMMAND>*\
 

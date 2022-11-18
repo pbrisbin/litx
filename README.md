@@ -64,8 +64,8 @@ litx --exec cat <./.op.md >./op.bash
 % litx --help
 Usage: litx [-i|--input PATH|-] [-o|--output PATH|-] [-s|--save PATH|-] [--bash]
             [-l|--language LANGUAGE] [--shebang TEXT] [--no-banner] 
-            [--banner TEXT] [--no-preamble] [--preamble TEXT] [--exec CMD] 
-            [--arg ARG] [--no-env]
+            [--banner TEXT] [--no-preamble] [--preamble TEXT] 
+            [--comment-chars TEXT] [--exec CMD] [--arg ARG] [--no-env]
   Execute Literate Markdown programs
 
 Available options:
@@ -80,6 +80,7 @@ Available options:
   --banner TEXT            Set the banner
   --no-preamble            Disable any preamble
   --preamble TEXT          Set the preamble
+  --comment-chars TEXT     Set the characters used for line comments
   --exec CMD               Execute script using CMD
   --arg ARG                Pass additional arguments when executing
   --no-env                 Don't inherit ENV in the executed process

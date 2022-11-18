@@ -86,8 +86,11 @@ executeOptionsParser = mconcat <$> sequenceA
         $ mconcat [long "no-preamble", help "Disable any preamble"]
     , eOptional (preambleL ?~) strOption
         $ mconcat [long "preamble", metavar "TEXT", help "Set the preamble"]
-
-    --comment-char
+    , eOptional (commentCharsL .~) strOption $ mconcat
+        [ long "comment-chars"
+        , metavar "TEXT"
+        , help "Set the characters used for line comments"
+        ]
     , eOptional setExec strOption
         $ mconcat [long "exec", metavar "CMD", help "Execute script using CMD"]
     , eMany (executeArgsL <>~) strOption $ mconcat

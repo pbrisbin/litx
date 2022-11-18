@@ -12,7 +12,7 @@ overridden.
     --language=bash
     --shebang="/usr/bin/env bash"
     --preamble="set -euo pipefail"
-    --comment-char="#"
+    --comment-chars="#"
     --exec="bash"
     --arg="-s"
     --arg="-"
