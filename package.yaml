@@ -9,6 +9,11 @@ extra-doc-files:
   - README.md
   - CHANGELOG.md
 
+# Used by test suite
+extra-source-files:
+  - files/example.md
+  - files/example.bash
+
 description: Please see <https://github.com/pbrisbin/litx#readme>
 
 dependencies:

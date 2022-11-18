@@ -14,6 +14,9 @@ maintainer:     pbrisbin@gmail.com
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
+extra-source-files:
+    files/example.md
+    files/example.bash
 extra-doc-files:
     README.md
     CHANGELOG.md
