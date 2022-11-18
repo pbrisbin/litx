@@ -91,15 +91,13 @@ executeOptionsParser = mconcat <$> sequenceA
     , eOptional setExec strOption
         $ mconcat [long "exec", metavar "CMD", help "Execute script using CMD"]
     , eMany (executeArgsL <>~) strOption $ mconcat
-        [ long "exec-arg"
+        [ long "arg"
         , help "Pass additional arguments when executing"
         , metavar "ARG"
         ]
     , eFlag (inheritEnvL .~) InheritEnv Don'tInheritEnv
         $ mconcat
-              [ long "exec-no-env"
-              , help "Don't inherit ENV in the executed process"
-              ]
+              [long "no-env", help "Don't inherit ENV in the executed process"]
     ]
 
 setOutput :: Output -> ExecuteOptions -> ExecuteOptions
