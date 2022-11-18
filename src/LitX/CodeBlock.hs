@@ -9,6 +9,7 @@ module LitX.CodeBlock
 
 import LitX.Prelude
 
+import Data.Aeson
 import LitX.Language
 
 data CodeBlock = CodeBlock
@@ -17,6 +18,8 @@ data CodeBlock = CodeBlock
     , cbLine :: Maybe Int
     , cbContent :: Text
     }
+    deriving stock Generic
+    deriving anyclass ToJSON
 
 codeBlock :: Language -> FilePath -> Maybe Int -> Text -> CodeBlock
 codeBlock = CodeBlock

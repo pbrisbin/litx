@@ -55,7 +55,9 @@ default-extensions:
 library:
   source-dirs: src
   dependencies:
+    - Blammo
     - bytestring
+    - aeson
     - cmark
     - containers
     - microlens

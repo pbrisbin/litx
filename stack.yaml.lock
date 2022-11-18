@@ -5,12 +5,33 @@
 
 packages:
 - completed:
+    hackage: Blammo-1.1.1.0@sha256:60d5fce5abe561b27389da1df6a17fefef36e91e956790f10626b5cf1a19cde3,4008
+    pantry-tree:
+      sha256: 9dabb8c19abb6d1c60c5ebbfbf8960cc45b4db609d0559c06a8cd94cb513272b
+      size: 1415
+  original:
+    hackage: Blammo-1.1.1.0
+- completed:
     hackage: shellwords-0.1.3.1@sha256:4dde2a0390b27e57e5facac9b1e67d5ec40df17054798eb07290d7982121d37d,2236
     pantry-tree:
       sha256: 75719c1173f63221ff64e6c3363cb84c77226accb5d8dd3988715449266d0ef3
       size: 497
   original:
     hackage: shellwords-0.1.3.1
+- completed:
+    hackage: monad-logger-aeson-0.4.0.2@sha256:0a1189f53fdfa57e88735d0d65b943983010203fcd3f122ea552042dfb2d2501,6215
+    pantry-tree:
+      sha256: 3955f99746fcb73d120b4bd486a110eec0bad975c00cc5ca29b3ba259c12a4b9
+      size: 7096
+  original:
+    hackage: monad-logger-aeson-0.4.0.2
+- completed:
+    hackage: context-0.2.0.1@sha256:b5a1390a5ad11b7edd0449c9ef96823f082bff4988bd09583e37a4e93e9aad10,1891
+    pantry-tree:
+      sha256: ebb043dd007864588c6b1676a0d30e521deab4353a3f19716f6f6f7d52b62817
+      size: 952
+  original:
+    hackage: context-0.2.0.1
 snapshots:
 - completed:
     sha256: 6d1532d40621957a25bad5195bfca7938e8a06d923c91bc52aa0f3c41181f2d4

@@ -11,6 +11,7 @@ module LitX.Parse
 import LitX.Prelude
 
 import CMark
+import Data.Aeson
 import LitX.CodeBlock
 import LitX.Language
 import LitX.Options.Pragma
@@ -23,6 +24,10 @@ instance IsString Input where
     fromString = \case
         "-" -> InputStdin
         path -> InputFile path
+
+instance ToJSON Input where
+    toJSON = toJSON . showInput
+    toEncoding = toEncoding . showInput
 
 showInput :: Input -> String
 showInput = \case
@@ -38,6 +43,8 @@ data Markdown = Markdown
     { mPragma :: Maybe [String]
     , mCodeBlocks :: [CodeBlock]
     }
+    deriving stock Generic
+    deriving anyclass ToJSON
 
 markdownPragma :: Markdown -> Maybe [String]
 markdownPragma = mPragma

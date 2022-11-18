@@ -4,14 +4,18 @@ module LitX
 
 import LitX.Prelude
 
+import Blammo.Logging.Simple
 import LitX.Execute
 import LitX.Options
 import LitX.Parse
 
 litx :: MonadUnliftIO m => [String] -> m ()
-litx args = do
+litx args = runSimpleLoggingT $ do
     options <- parseOptions args
+    logDebug $ "Options parsed" :# ["input" .= optionsInput options]
+
     markdown <- parseMarkdown $ optionsInput options
+    logDebug $ "Markdown parsed" :# ["markdown" .= markdown]
 
     executeOptions <-
         (`getExecuteOptions` markdownDefaultLanguage markdown) <$> maybe
@@ -19,4 +23,5 @@ litx args = do
             (fmap (<> optionsExecuteOptions options) . parseExecuteOptions)
             (markdownPragma markdown)
 
+    logDebug $ "Executing" :# ["options" .= executeOptions]
     executeMarkdown executeOptions markdown

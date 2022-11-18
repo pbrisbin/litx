@@ -8,10 +8,15 @@ module LitX.Language
 
 import LitX.Prelude
 
+import Data.Aeson
 import Data.List (intercalate)
 
 data Language = Bash
     deriving stock (Eq, Ord, Enum, Bounded)
+
+instance ToJSON Language where
+    toJSON = toJSON . showLanguage
+    toEncoding = toEncoding . showLanguage
 
 readLanguage :: String -> Either String Language
 readLanguage = \case
