@@ -1,6 +1,6 @@
 # LitX
 
-Execute a Literate Markdown file.
+Execute a Literate Markdown program.
 
 ## Motivation
 
@@ -26,14 +26,15 @@ LitX does exactly that.
 
 Given [this input][input],
 
+[input]: ./files/example.md
+
 ![](./files/example-md.png)
 
-LitX can generate (and execute) [this output][output],
+LitX will generate (and execute) [this output][output],
+
+[output]: ./files/example.bash
 
 ![](./files/example-bash.png)
-
-[input]: ./files/example.md
-[output]: ./files/example.bash
 
 ## Basic Usage
 
@@ -86,6 +87,47 @@ Available options:
 
 See litx(1) for more details.
 ```
+
+## Installation
+
+### Binary Release
+
+1. Head over to [Releases](/releases) and choose a Release
+1. Copy the URL to the appropriate archive for your OS
+1. Download, extract, and install:
+
+   ```console
+   curl -L "$(xclip -o -s clipboard) | tar xvzf -       # On Linux
+   curl -L "$(pbpaste)" | tar xvzf -                    # On OSX
+   cd ./litx
+   sudo make install                                    # for /usr/bin/litx
+   make install PREFIX=$HOME/.local                     # for ~/.local/bin/lix
+   rm -r ./litx                                         # optionally
+   ```
+
+### From Source
+
+1. Have a Haskell setup, including Stack
+1. Clone the repository
+1. Build and install in `~/.local`
+
+   ```console
+   make install.check
+   ```
+
+You can also run `stack build ... --copy-bins` of course, but you'll be missing
+completions and documentation.
+
+## Documentation
+
+Once installed,
+
+```
+man 1 litx
+```
+
+Documentation is always available in Markdown form [in-repository](./doc/), but
+note it will be as of `main` and not necessarily your installed version.
 
 ## Roadmap
 
