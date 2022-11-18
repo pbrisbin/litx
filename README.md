@@ -134,7 +134,7 @@ note it will be as of `main` and not necessarily your installed version.
 
 - [ ] Add `--check` for (e.g.) running ShellCheck on output
 - [ ] Add `--{offset,skip}=[-]N` to target specific code blocks by index
-- [ ] `<!-- lintx: ignore -->` pragmas
+- [ ] `<!-- litx: ignore -->` pragmas
 
 ---
 
