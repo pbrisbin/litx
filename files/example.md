@@ -1,18 +1,21 @@
-<!-- litx --language=bash -->
+<!-- litx --bash -->
 <!--
 
 We can declare additional options by in-file pragma ^ It must be a comment all
 by itself that contains only "litx [option...]" surrounded by whitespace.
 
 There are LOTS of options, which are defaulted by --language, but can be
-overridden. In addition to telling litx to pull out code-blocks tagged "bash",
---language=bash also implies:
+overridden.
 
-  --exec="bash"
-  --exec-arg="-s"
-  --exec-arg="-"
-  --shebang="/usr/bin/env bash"
-  --preamble="set -euo pipefail"
+  --bash implies:
+
+    --language=bash
+    --shebang="/usr/bin/env bash"
+    --preamble="set -euo pipefail"
+    --comment-char="#"
+    --exec="bash"
+    --exec-arg="-s"
+    --exec-arg="-"
 
 -->
 

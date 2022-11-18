@@ -1,19 +1,19 @@
 module LitX.Parse
-    ( ParseOptions
-    , defaultParseOptions
-    , Input(..)
-    , parseCodeBlocks
+    ( Input(..)
+    , showInput
+    , Markdown
+    , markdownPragma
+    , markdownCodeBlocks
+    , markdownDefaultLanguage
+    , parseMarkdown
     ) where
 
 import LitX.Prelude
 
 import CMark
 import LitX.CodeBlock
-
-data ParseOptions = ParseOptions
-
-defaultParseOptions :: ParseOptions
-defaultParseOptions = ParseOptions
+import LitX.Language
+import LitX.Options.Pragma
 
 data Input
     = InputStdin
@@ -34,9 +34,29 @@ inputGetContents = \case
     InputStdin -> getContents
     InputFile path -> readFile path
 
-parseCodeBlocks :: MonadIO m => ParseOptions -> Input -> m [CodeBlock]
-parseCodeBlocks _ input = do
-    getCodeBlocks src . commonmarkToNode [] <$> inputGetContents input
+data Markdown = Markdown
+    { mPragma :: Maybe [String]
+    , mCodeBlocks :: [CodeBlock]
+    }
+
+markdownPragma :: Markdown -> Maybe [String]
+markdownPragma = mPragma
+
+markdownCodeBlocks :: Markdown -> [CodeBlock]
+markdownCodeBlocks = mCodeBlocks
+
+markdownDefaultLanguage :: Markdown -> Language
+markdownDefaultLanguage =
+    fromMaybe defaultLanguage . mostFrequentBy codeBlockLanguage . mCodeBlocks
+
+parseMarkdown :: MonadIO m => Input -> m Markdown
+parseMarkdown input = do
+    node <- commonmarkToNode [] <$> inputGetContents input
+
+    let mPragma = getPragmaArgs node
+        mCodeBlocks = getCodeBlocks src node
+
+    pure Markdown { .. }
     where src = showInput input
 
 getCodeBlocks :: FilePath -> Node -> [CodeBlock]

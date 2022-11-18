@@ -64,7 +64,6 @@ library:
     - shellwords
     - text
     - typed-process
-    - unliftio
     - unliftio-core
 
 executables:

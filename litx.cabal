@@ -32,7 +32,6 @@ library
       LitX.Options.Pragma
       LitX.Parse
       LitX.Prelude
-      LitX.Render
   other-modules:
       Paths_litx
   hs-source-dirs:
@@ -75,7 +74,6 @@ library
     , shellwords
     , text
     , typed-process
-    , unliftio
     , unliftio-core
   default-language: Haskell2010
 
