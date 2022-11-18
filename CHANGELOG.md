@@ -1,4 +1,8 @@
-## [_Unreleased_](https://github.com/pbrisbin/litx/compare/main...v0.0.0.0)
+## [_Unreleased_](https://github.com/pbrisbin/litx/compare/main...v0.0.0.2)
+
+## [v0.0.0.2](https://github.com/pbrisbin/litx/compare/v0.0.0.1...v0.0.0.2)
+
+- Internal: trigger release
 
 ## [v0.0.0.1](https://github.com/pbrisbin/litx/compare/v0.0.0.0...v0.0.0.1)
 
