@@ -54,7 +54,13 @@ markdownCodeBlocks = mCodeBlocks
 
 markdownDefaultLanguage :: Markdown -> Language
 markdownDefaultLanguage =
-    fromMaybe defaultLanguage . mostFrequentBy codeBlockLanguage . mCodeBlocks
+    fromMaybe defaultLanguage
+        . mostFrequent
+        . mapMaybe codeBlockLanguage
+        . mCodeBlocks
+
+codeBlockLanguage :: CodeBlock -> Maybe Language
+codeBlockLanguage = hush . readLanguage . unpack . codeBlockTag
 
 parseMarkdown :: MonadIO m => Input -> m Markdown
 parseMarkdown input = do
@@ -71,7 +77,6 @@ getCodeBlocks path = walkNodes $ nodeToCodeBlock path
 
 nodeToCodeBlock :: FilePath -> Node -> Maybe CodeBlock
 nodeToCodeBlock path = \case
-    Node mPosInfo (CODE_BLOCK info content) _ -> do
-        language <- hush $ readLanguage $ unpack info
-        pure $ codeBlock language path (startLine <$> mPosInfo) content
+    Node mPosInfo (CODE_BLOCK info content) _ ->
+        Just $ codeBlock info path (startLine <$> mPosInfo) content
     _ -> Nothing

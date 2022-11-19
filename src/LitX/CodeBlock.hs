@@ -1,21 +1,18 @@
 module LitX.CodeBlock
     ( CodeBlock
     , codeBlock
-    , codeBlockLanguage
+    , codeBlockTag
     , codeBlockPath
     , codeBlockLine
     , codeBlockContent
-    , codeBlockIsLanguage
     ) where
 
 import LitX.Prelude
 
 import Data.Aeson
-import Data.Function (on)
-import LitX.Language
 
 data CodeBlock = CodeBlock
-    { cbLanguage :: Language
+    { cbTag :: Text
     , cbPath :: FilePath
     , cbLine :: Maybe Int
     , cbContent :: Text
@@ -23,11 +20,11 @@ data CodeBlock = CodeBlock
     deriving stock Generic
     deriving anyclass ToJSON
 
-codeBlock :: Language -> FilePath -> Maybe Int -> Text -> CodeBlock
+codeBlock :: Text -> FilePath -> Maybe Int -> Text -> CodeBlock
 codeBlock = CodeBlock
 
-codeBlockLanguage :: CodeBlock -> Language
-codeBlockLanguage = cbLanguage
+codeBlockTag :: CodeBlock -> Text
+codeBlockTag = cbTag
 
 codeBlockPath :: CodeBlock -> FilePath
 codeBlockPath = cbPath
@@ -37,7 +34,3 @@ codeBlockLine = cbLine
 
 codeBlockContent :: CodeBlock -> Text
 codeBlockContent = cbContent
-
-codeBlockIsLanguage :: Language -> CodeBlock -> Bool
-codeBlockIsLanguage language = go language . codeBlockLanguage
-    where go = (==) `on` languageCodeBlockTag

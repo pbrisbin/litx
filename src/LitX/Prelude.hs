@@ -4,6 +4,7 @@ module LitX.Prelude
     -- * Base
     , snoc
     , hush
+    , mostFrequent
     , mostFrequentBy
     , fromMaybeM
 
@@ -24,7 +25,7 @@ import Control.Monad as X (unless, void, when, (<=<))
 import Control.Monad.IO.Class as X (MonadIO(..))
 import Control.Monad.IO.Unlift as X (MonadUnliftIO)
 import Data.Foldable as X (fold)
-import Data.Maybe as X (catMaybes, fromMaybe, listToMaybe)
+import Data.Maybe as X (catMaybes, fromMaybe, listToMaybe, mapMaybe)
 import Data.Semigroup as X (First(..), Last(..), Sum(..))
 import Data.Semigroup.Generic as X (GenericSemigroupMonoid(..))
 import Data.String as X (IsString(..))
@@ -45,6 +46,9 @@ snoc as a = as <> [a]
 
 hush :: Either e a -> Maybe a
 hush = either (const Nothing) Just
+
+mostFrequent :: Ord a => [a] -> Maybe a
+mostFrequent = mostFrequentBy id
 
 mostFrequentBy :: Ord b => (a -> b) -> [a] -> Maybe b
 mostFrequentBy f =
