@@ -1,5 +1,6 @@
 module LitX.Language
     ( Language(..)
+    , languageCodeBlockTag
     , readLanguage
     , showLanguage
     , showAllLanguages
@@ -17,6 +18,10 @@ data Language = Bash
 instance ToJSON Language where
     toJSON = toJSON . showLanguage
     toEncoding = toEncoding . showLanguage
+
+languageCodeBlockTag :: Language -> Text
+languageCodeBlockTag = \case
+    Bash -> "bash"
 
 readLanguage :: String -> Either String Language
 readLanguage = \case

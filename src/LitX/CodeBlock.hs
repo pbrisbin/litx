@@ -5,11 +5,13 @@ module LitX.CodeBlock
     , codeBlockPath
     , codeBlockLine
     , codeBlockContent
+    , codeBlockIsLanguage
     ) where
 
 import LitX.Prelude
 
 import Data.Aeson
+import Data.Function (on)
 import LitX.Language
 
 data CodeBlock = CodeBlock
@@ -35,3 +37,7 @@ codeBlockLine = cbLine
 
 codeBlockContent :: CodeBlock -> Text
 codeBlockContent = cbContent
+
+codeBlockIsLanguage :: Language -> CodeBlock -> Bool
+codeBlockIsLanguage language = go language . codeBlockLanguage
+    where go = (==) `on` languageCodeBlockTag

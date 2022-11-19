@@ -162,7 +162,7 @@ executeMarkdown ExecuteOptions {..} markdown = do
     renderCodeBlocks =
         T.intercalate "\n"
             $ map renderCodeBlock
-            $ filter ((== eoLanguage) . codeBlockLanguage)
+            $ filter (codeBlockIsLanguage eoLanguage)
             $ markdownCodeBlocks markdown
 
     renderCodeBlock :: CodeBlock -> Text
