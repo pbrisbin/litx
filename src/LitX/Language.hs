@@ -23,6 +23,7 @@ import qualified Paths_litx as Pkg
 
 data Language
     = Bash
+    | Python
     deriving stock (Eq, Ord, Enum, Bounded)
 
 instance ToJSON Language where
@@ -32,10 +33,12 @@ instance ToJSON Language where
 showLanguage :: Language -> String
 showLanguage = \case
     Bash -> "bash"
+    Python -> "python"
 
 languageCodeBlockTag :: Language -> Text
 languageCodeBlockTag = \case
     Bash -> "bash"
+    Python -> "python"
 
 languageExecuteOptions :: Language -> Dual (Endo ExecuteOptions)
 languageExecuteOptions = Dual . Endo . \case
@@ -46,6 +49,13 @@ languageExecuteOptions = Dual . Endo . \case
             . (preambleL ?~ "set -euo pipefail")
             . (commentCharsL .~ "#")
             . (execL .~ "bash")
+            . (argsL .~ ["-s", "-"])
+    Python ->
+        (filterL .~ filterLanguage Python)
+            . (shebangL .~ "/usr/bin/env python")
+            . (bannerL ?~ ("#\n# " <> generatedBy <> "\n#\n###"))
+            . (commentCharsL .~ "#")
+            . (execL .~ "python")
             . (argsL .~ ["-s", "-"])
 
 languageOptionParser :: Language -> Parser (Dual (Endo ExecuteOptions))
