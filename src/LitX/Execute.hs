@@ -10,13 +10,12 @@ module LitX.Execute
     , preambleL
     , commentCharsL
     , filterL
-    , executeModeL
-    , executeArgsL
+    , execL
+    , argsL
     , inheritEnvL
 
     -- * Component types
     , Filter(..)
-    , ExecuteMode(..)
     , InheritEnv(..)
 
     -- * Execution
@@ -38,8 +37,8 @@ data ExecuteOptions = ExecuteOptions
     , eoBanner :: Maybe Text
     , eoPreamble :: Maybe Text
     , eoCommentChars :: Text
-    , eoExecuteMode :: ExecuteMode
-    , eoExecuteArgs :: [String]
+    , eoExec :: String
+    , eoArgs :: [String]
     , eoInheritEnv :: InheritEnv
     }
     deriving stock Generic
@@ -52,8 +51,8 @@ defaultExecuteOptions = ExecuteOptions
     , eoBanner = Nothing
     , eoPreamble = Nothing
     , eoCommentChars = "#"
-    , eoExecuteMode = Execute "cat"
-    , eoExecuteArgs = []
+    , eoExec = "cat"
+    , eoArgs = []
     , eoInheritEnv = InheritEnv
     }
 
@@ -72,11 +71,11 @@ preambleL = lens eoPreamble $ \x y -> x { eoPreamble = y }
 commentCharsL :: Lens' ExecuteOptions Text
 commentCharsL = lens eoCommentChars $ \x y -> x { eoCommentChars = y }
 
-executeModeL :: Lens' ExecuteOptions ExecuteMode
-executeModeL = lens eoExecuteMode $ \x y -> x { eoExecuteMode = y }
+execL :: Lens' ExecuteOptions String
+execL = lens eoExec $ \x y -> x { eoExec = y }
 
-executeArgsL :: Lens' ExecuteOptions [String]
-executeArgsL = lens eoExecuteArgs $ \x y -> x { eoExecuteArgs = y }
+argsL :: Lens' ExecuteOptions [String]
+argsL = lens eoArgs $ \x y -> x { eoArgs = y }
 
 inheritEnvL :: Lens' ExecuteOptions InheritEnv
 inheritEnvL = lens eoInheritEnv $ \x y -> x { eoInheritEnv = y }
@@ -89,12 +88,6 @@ instance ToJSON Filter where
     toJSON _ = toJSON ()
     toEncoding _ = toEncoding ()
 
-data ExecuteMode
-    = Execute String
-    | NoExecute
-    deriving stock Generic
-    deriving anyclass ToJSON
-
 data InheritEnv
     = InheritEnv
     | Don'tInheritEnv
@@ -103,11 +96,8 @@ data InheritEnv
 
 executeMarkdown :: MonadUnliftIO m => ExecuteOptions -> Markdown -> m ()
 executeMarkdown ExecuteOptions {..} markdown = do
-    case eoExecuteMode of
-        Execute cmd -> do
-            let input = byteStringInput $ BSL.fromStrict $! encodeUtf8 script
-            runProcess_ $ clearEnv $ setStdin input $ proc cmd eoExecuteArgs
-        NoExecute -> pure ()
+    let input = byteStringInput $ BSL.fromStrict $! encodeUtf8 script
+    runProcess_ $ clearEnv $ setStdin input $ proc eoExec eoArgs
   where
     script = mconcat
         [ "#!" <> eoShebang <> "\n"

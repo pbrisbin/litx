@@ -1,6 +1,7 @@
 module LitX.Language
     ( Language(..)
     , languageCodeBlockTag
+    , languageOptionParser
     , languageExecuteOptions
     , readLanguage
     , showLanguage
@@ -15,6 +16,7 @@ import Data.List (intercalate)
 import Data.Version
 import LitX.CodeBlock
 import LitX.Execute
+import Options.Applicative
 import qualified Paths_litx as Pkg
 
 data Language = Bash
@@ -28,6 +30,19 @@ languageCodeBlockTag :: Language -> Text
 languageCodeBlockTag = \case
     Bash -> "bash"
 
+languageOptionParser :: Language -> Parser (Dual (Endo ExecuteOptions))
+languageOptionParser language =
+    flag mempty (languageExecuteOptions language) $ mconcat
+        [ long shown
+        , help $ "Parse and execute " <> shownTag <> " code blocks" <> suffix
+        ]
+  where
+    shownTag = unpack $ languageCodeBlockTag language
+    shown = showLanguage language
+    suffix
+        | shown == shownTag = ""
+        | otherwise = " as " <> shown
+
 languageExecuteOptions :: Language -> Dual (Endo ExecuteOptions)
 languageExecuteOptions = Dual . Endo . \case
     Bash ->
@@ -36,8 +51,8 @@ languageExecuteOptions = Dual . Endo . \case
             . (bannerL ?~ ("#\n# " <> generatedBy <> "\n#\n###"))
             . (preambleL ?~ "set -euo pipefail")
             . (commentCharsL .~ "#")
-            . (executeModeL .~ Execute "bash")
-            . (executeArgsL .~ ["-s", "-"])
+            . (execL .~ "bash")
+            . (argsL .~ ["-s", "-"])
 
 readLanguage :: String -> Either String Language
 readLanguage = \case
