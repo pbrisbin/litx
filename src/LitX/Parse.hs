@@ -4,7 +4,6 @@ module LitX.Parse
     , Markdown
     , markdownPragma
     , markdownCodeBlocks
-    , markdownDefaultLanguage
     , parseMarkdown
     ) where
 
@@ -13,7 +12,6 @@ import LitX.Prelude
 import CMark
 import Data.Aeson
 import LitX.CodeBlock
-import LitX.Language
 import LitX.Options.Pragma
 
 data Input
@@ -51,16 +49,6 @@ markdownPragma = mPragma
 
 markdownCodeBlocks :: Markdown -> [CodeBlock]
 markdownCodeBlocks = mCodeBlocks
-
-markdownDefaultLanguage :: Markdown -> Language
-markdownDefaultLanguage =
-    fromMaybe defaultLanguage
-        . mostFrequent
-        . mapMaybe codeBlockLanguage
-        . mCodeBlocks
-
-codeBlockLanguage :: CodeBlock -> Maybe Language
-codeBlockLanguage = hush . readLanguage . unpack . codeBlockTag
 
 parseMarkdown :: MonadIO m => Input -> m Markdown
 parseMarkdown input = do

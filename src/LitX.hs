@@ -5,7 +5,9 @@ module LitX
 import LitX.Prelude
 
 import Blammo.Logging.Simple
+import LitX.CodeBlock
 import LitX.Execute
+import LitX.Language
 import LitX.Options
 import LitX.Parse
 
@@ -17,11 +19,22 @@ litx args = runSimpleLoggingT $ do
     markdown <- parseMarkdown $ optionsInput options
     logDebug $ "Markdown parsed" :# ["markdown" .= markdown]
 
-    executeOptions <-
-        (`getExecuteOptions` markdownDefaultLanguage markdown) <$> maybe
-            (pure $ optionsExecuteOptions options)
-            (fmap (<> optionsExecuteOptions options) . parseExecuteOptions)
-            (markdownPragma markdown)
+    mPragmaOptions <- traverse parseExecuteOptions $ markdownPragma markdown
 
-    logDebug $ "Executing" :# ["options" .= executeOptions]
+    let
+        executeOptions = getExecuteOptions $ mconcat
+            [ languageExecuteOptions $ inferredLanguage markdown
+            , fromMaybe mempty mPragmaOptions
+            , optionsExecuteOptions options
+            ]
+
+    logDebug $ "Executing" :# ["executeOptions" .= executeOptions]
+
     executeMarkdown executeOptions markdown
+
+inferredLanguage :: Markdown -> Language
+inferredLanguage =
+    fromMaybe defaultLanguage
+        . mostFrequent
+        . mapMaybe (hush . readLanguage . unpack . codeBlockTag)
+        . markdownCodeBlocks

@@ -9,7 +9,6 @@ module LitX.Options
 
 import LitX.Prelude
 
-import Data.Semigroup (Dual(..), Endo(..))
 import LitX.Execute
 import LitX.Language
 import LitX.Parse
@@ -26,8 +25,8 @@ optionsInput = oInput
 optionsExecuteOptions :: Options -> Dual (Endo ExecuteOptions)
 optionsExecuteOptions = oExecuteOptions
 
-getExecuteOptions :: Dual (Endo ExecuteOptions) -> Language -> ExecuteOptions
-getExecuteOptions f = appEndo (getDual f) . defaultExecuteOptions
+getExecuteOptions :: Dual (Endo ExecuteOptions) -> ExecuteOptions
+getExecuteOptions f = appEndo (getDual f) defaultExecuteOptions
 
 parseOptions :: MonadIO m => [String] -> m Options
 parseOptions = parseArgs optionsParser
@@ -94,7 +93,7 @@ executeOptionsParser = mconcat <$> sequenceA
 
 toLanguageSwitch :: Language -> Parser (Dual (Endo ExecuteOptions))
 toLanguageSwitch language =
-    eSwitch (setLanguageExecuteOptions language) $ mconcat
+    flag mempty (languageExecuteOptions language) $ mconcat
         [ long shown
         , help $ "Parse and execute " <> shownTag <> " code blocks" <> suffix
         ]

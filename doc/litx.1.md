@@ -35,7 +35,7 @@ complicated no-op (and empty file executed with *cat*).
 
 Additional languages coming soon.
 
-## Execution Options
+## Rendering Options
 
 **\--shebang** *\<TEXT>*\
 
@@ -67,6 +67,8 @@ Additional languages coming soon.
 **\--comment-chars** *\<TEXT>*\
 
 > Set the characters used to prefix line comments.
+
+## Execution Options
 
 **\--exec** *\<COMMAND>*\
 
