@@ -93,4 +93,3 @@ tests:
       - hspec
       - litx
       - text
-      - unliftio

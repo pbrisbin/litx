@@ -51,10 +51,6 @@ litx -i ./op.md
 Build the code-blocks in `op.md` into `op.bash`, do not execute it:
 
 ```console
-litx -o - <./op.md >./op.bash
-
-litx -o ./op.bash <./op.md
-
 litx --exec cat <./.op.md >./op.bash
 ```
 

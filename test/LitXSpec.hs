@@ -9,17 +9,19 @@ import Data.Version
 import LitX
 import qualified Paths_litx as Pkg
 import Test.Hspec
-import UnliftIO.Directory (doesFileExist, removeFile)
 
 spec :: Spec
 spec = do
     describe "litx" $ do
         it "processes our example correctly" $ do
             let tmp = "/tmp/litx-test.bash"
-            exists <- doesFileExist tmp
-            when exists $ removeFile tmp
 
-            litx ["--input", "files/example.md", "--output", tmp]
+            litx $ concat
+                [ ["--input", "files/example.md"]
+                , ["--exec", "sh"]
+                , ["--arg", "-c"]
+                , ["--arg", "cat > '" <> tmp <> "'"]
+                ]
 
             actual <- readFile tmp
             expected <- replaceVersion <$> readFile "files/example.bash"

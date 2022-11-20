@@ -52,30 +52,7 @@ parseExecuteOptions = parseArgs executeOptionsParser
 
 executeOptionsParser :: Parser (Dual (Endo ExecuteOptions))
 executeOptionsParser = mconcat <$> sequenceA
-    ([ eOptional setOutput strOption $ mconcat
-         [ short 'o'
-         , long "output"
-         , metavar "PATH|-"
-         , help "Output script to PATH, instead of execution"
-         ]
-     , eOptional (outputL .~) strOption $ mconcat
-         [ short 's'
-         , long "save"
-         , metavar "PATH|-"
-         , help "Save script to PATH, in addition to execution"
-         ]
-     , eOptional setLanguageExecuteOptions (option $ eitherReader readLanguage)
-         $ mconcat
-               [ short 'l'
-               , long "language"
-               , metavar "LANGUAGE"
-               , help
-               $ "Parse and execute LANGUAGE code blocks (supported: "
-               <> showAllLanguages
-               <> ")"
-               ]
-     ]
-    <> map toLanguageSwitch [minBound .. maxBound]
+    (map toLanguageSwitch [minBound .. maxBound]
     <> [ eOptional (shebangL .~) strOption
            $ mconcat
                  [ long "shebang"
@@ -98,7 +75,10 @@ executeOptionsParser = mconcat <$> sequenceA
            ]
        , eOptional setExec strOption
            $ mconcat
-                 [long "exec", metavar "CMD", help "Execute script using CMD"]
+                 [ long "exec"
+                 , metavar "CMD"
+                 , help "Execute script using CMD"
+                 ]
        , eMany (executeArgsL <>~) strOption $ mconcat
            [ long "arg"
            , help "Pass additional arguments when executing"
@@ -124,9 +104,6 @@ toLanguageSwitch language =
     suffix
         | shown == shownTag = ""
         | otherwise = " as " <> shown
-
-setOutput :: Output -> ExecuteOptions -> ExecuteOptions
-setOutput o eo = eo & outputL .~ o & executeModeL .~ NoExecute
 
 setExec :: String -> ExecuteOptions -> ExecuteOptions
 setExec cmd eo = eo & executeModeL .~ Execute cmd & executeArgsL .~ []

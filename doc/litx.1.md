@@ -16,21 +16,13 @@ litx - execute Literate Markdown programs
 
 > Read Markdown from *PATH* (default: *-*)
 
-**\-o**, **\--output** *\<PATH|->*\
-
-> Output script to *PATH*, **instead of** execution.
-
-**\-s**, **\--save** *\<PATH>*\
-
-> Save script to *PATH*, **in addition to** execution.
-
 ## Language Presets
 
 If not specified (see below), LitX uses the most common supported language
-across all code blocks in the source document. If there are none, an empty
-script will be produced and executed as *bash*, which is fairly inconsequential.
+across all code blocks in the source document. If there are none, LitX will be a
+complicated no-op (and empty file executed with *cat*).
 
-**\-l**, **\--language**=*bash*, **\--bash**
+**\--bash**
 
 > Equivalent to:
 >

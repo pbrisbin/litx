@@ -13,7 +13,6 @@ module LitX.Execute
     , executeModeL
     , executeArgsL
     , inheritEnvL
-    , outputL
 
     -- * Component types
     , Filter
@@ -49,7 +48,6 @@ data ExecuteOptions = ExecuteOptions
     , eoExecuteMode :: ExecuteMode
     , eoExecuteArgs :: [String]
     , eoInheritEnv :: InheritEnv
-    , eoOutput :: Output
     }
     deriving stock Generic
     deriving anyclass ToJSON
@@ -70,7 +68,6 @@ defaultExecuteOptions language =
         , eoExecuteMode = Execute "cat"
         , eoExecuteArgs = []
         , eoInheritEnv = InheritEnv
-        , eoOutput = OutputFile "/dev/null"
         }
 
 defaultCommentChars :: Text
@@ -102,9 +99,6 @@ executeArgsL = lens eoExecuteArgs $ \x y -> x { eoExecuteArgs = y }
 
 inheritEnvL :: Lens' ExecuteOptions InheritEnv
 inheritEnvL = lens eoInheritEnv $ \x y -> x { eoInheritEnv = y }
-
-outputL :: Lens' ExecuteOptions Output
-outputL = lens eoOutput $ \x y -> x { eoOutput = y }
 
 newtype Filter = Filter
     { runFilter :: CodeBlock -> Bool
@@ -146,10 +140,6 @@ showOutput = \case
 
 executeMarkdown :: MonadUnliftIO m => ExecuteOptions -> Markdown -> m ()
 executeMarkdown ExecuteOptions {..} markdown = do
-    case eoOutput of
-        OutputStdout -> putStr script
-        OutputFile path -> writeFile path script
-
     case eoExecuteMode of
         Execute cmd -> do
             let input = byteStringInput $ BSL.fromStrict $! encodeUtf8 script
