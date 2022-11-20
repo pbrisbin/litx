@@ -4,6 +4,7 @@ module LitX.Prelude
     -- * Base
     , snoc
     , hush
+    , note
     , mostFrequent
     , mostFrequentBy
     , fromMaybeM
@@ -21,6 +22,7 @@ module LitX.Prelude
 import Prelude as X hiding (getContents, putStr, readFile, writeFile)
 
 import Control.Applicative as X ((<|>))
+import Control.Arrow as X ((&&&), (***))
 import Control.Monad as X (unless, void, when, (<=<))
 import Control.Monad.IO.Class as X (MonadIO(..))
 import Control.Monad.IO.Unlift as X (MonadUnliftIO)
@@ -46,6 +48,9 @@ snoc as a = as <> [a]
 
 hush :: Either e a -> Maybe a
 hush = either (const Nothing) Just
+
+note :: e -> Maybe a -> Either e a
+note e = maybe (Left e) Right
 
 mostFrequent :: Ord a => [a] -> Maybe a
 mostFrequent = mostFrequentBy id

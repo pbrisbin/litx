@@ -13,22 +13,40 @@ import LitX.Prelude
 
 import Data.Aeson
 import Data.List (intercalate)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import Data.Version
 import LitX.CodeBlock
 import LitX.Execute
 import Options.Applicative
 import qualified Paths_litx as Pkg
 
-data Language = Bash
+data Language
+    = Bash
     deriving stock (Eq, Ord, Enum, Bounded)
 
 instance ToJSON Language where
     toJSON = toJSON . showLanguage
     toEncoding = toEncoding . showLanguage
 
+showLanguage :: Language -> String
+showLanguage = \case
+    Bash -> "bash"
+
 languageCodeBlockTag :: Language -> Text
 languageCodeBlockTag = \case
     Bash -> "bash"
+
+languageExecuteOptions :: Language -> Dual (Endo ExecuteOptions)
+languageExecuteOptions = Dual . Endo . \case
+    Bash ->
+        (filterL .~ filterLanguage Bash)
+            . (shebangL .~ "/usr/bin/env bash")
+            . (bannerL ?~ ("#\n# " <> generatedBy <> "\n#\n###"))
+            . (preambleL ?~ "set -euo pipefail")
+            . (commentCharsL .~ "#")
+            . (execL .~ "bash")
+            . (argsL .~ ["-s", "-"])
 
 languageOptionParser :: Language -> Parser (Dual (Endo ExecuteOptions))
 languageOptionParser language =
@@ -43,33 +61,20 @@ languageOptionParser language =
         | shown == shownTag = ""
         | otherwise = " as " <> shown
 
-languageExecuteOptions :: Language -> Dual (Endo ExecuteOptions)
-languageExecuteOptions = Dual . Endo . \case
-    Bash ->
-        (filterL .~ Filter ((== languageCodeBlockTag Bash) . codeBlockTag))
-            . (shebangL .~ "/usr/bin/env bash")
-            . (bannerL ?~ ("#\n# " <> generatedBy <> "\n#\n###"))
-            . (preambleL ?~ "set -euo pipefail")
-            . (commentCharsL .~ "#")
-            . (execL .~ "bash")
-            . (argsL .~ ["-s", "-"])
+filterLanguage :: Language -> Filter
+filterLanguage language =
+    Filter $ (== languageCodeBlockTag language) . codeBlockTag
 
 readLanguage :: String -> Either String Language
-readLanguage = \case
-    "bash" -> Right Bash
-    x ->
-        Left
-            $ "Invalid language ("
-            <> show x
-            <> "), must be "
-            <> showAllLanguages
-
-showLanguage :: Language -> String
-showLanguage = \case
-    Bash -> "bash"
+readLanguage x = note err $ Map.lookup x allLanguages
+  where
+    err = "Invalid language (" <> show x <> "), must be " <> showAllLanguages
 
 showAllLanguages :: String
-showAllLanguages = intercalate "|" $ map showLanguage [minBound .. maxBound]
+showAllLanguages = intercalate "|" $ Map.keys allLanguages
+
+allLanguages :: Map String Language
+allLanguages = Map.fromList $ map (showLanguage &&& id) [minBound .. maxBound]
 
 defaultLanguage :: Language
 defaultLanguage = Bash
