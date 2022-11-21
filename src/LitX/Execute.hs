@@ -2,7 +2,7 @@
 
 module LitX.Execute
     ( ExecuteOptions
-    , defaultExecuteOptions
+    , getExecuteOptions
 
     -- Prefer lens access because of the 'Endo'-based Options parsing
     , commentCharsL
@@ -38,8 +38,8 @@ data ExecuteOptions = ExecuteOptions
     deriving stock Generic
     deriving anyclass ToJSON
 
-defaultExecuteOptions :: ExecuteOptions
-defaultExecuteOptions = ExecuteOptions
+getExecuteOptions :: Dual (Endo ExecuteOptions) -> ExecuteOptions
+getExecuteOptions f = appEndo (getDual f) $ ExecuteOptions
     { eoFilter = Filter $ const False
     , eoCommentChars = "#"
     , eoExec = "cat"
@@ -77,31 +77,30 @@ data InheritEnv
     deriving anyclass ToJSON
 
 executeMarkdown :: MonadUnliftIO m => ExecuteOptions -> Markdown -> m ()
-executeMarkdown ExecuteOptions {..} markdown = do
-    let input = byteStringInput $ BSL.fromStrict $! encodeUtf8 script
+executeMarkdown options@ExecuteOptions {..} markdown = do
+    let
+        input =
+            byteStringInput
+                $ BSL.fromStrict
+                $! encodeUtf8
+                $ T.intercalate "\n"
+                $ map (renderCodeBlock options)
+                $ filter (runFilter eoFilter)
+                $ markdownCodeBlocks markdown
+
     runProcess_ $ clearEnv $ setStdin input $ proc eoExec eoArgs
   where
     clearEnv = case eoInheritEnv of
         InheritEnv -> id
         Don'tInheritEnv -> setEnv []
 
-    script :: Text
-    script =
-        T.intercalate "\n"
-            $ map renderCodeBlock
-            $ filter (runFilter eoFilter)
-            $ markdownCodeBlocks markdown
+renderCodeBlock :: ExecuteOptions -> CodeBlock -> Text
+renderCodeBlock ExecuteOptions {..} block =
+    eoCommentChars <> " " <> sourceAnnotation block <> codeBlockContent block
 
-    renderCodeBlock :: CodeBlock -> Text
-    renderCodeBlock block =
-        eoCommentChars
-            <> " "
-            <> sourceAnnotation block
-            <> codeBlockContent block
-
-    sourceAnnotation :: CodeBlock -> Text
-    sourceAnnotation block =
-        "source="
-            <> pack (codeBlockPath block)
-            <> maybe "" ((":" <>) . pack . show) (codeBlockLine block)
-            <> "\n"
+sourceAnnotation :: CodeBlock -> Text
+sourceAnnotation block =
+    "source="
+        <> pack (codeBlockPath block)
+        <> maybe "" ((":" <>) . pack . show) (codeBlockLine block)
+        <> "\n"

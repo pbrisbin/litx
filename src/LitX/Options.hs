@@ -4,7 +4,6 @@ module LitX.Options
     , optionsExecuteOptions
     , parseOptions
     , parseExecuteOptions
-    , getExecuteOptions
     ) where
 
 import LitX.Prelude
@@ -24,9 +23,6 @@ optionsInput = oInput
 
 optionsExecuteOptions :: Options -> Dual (Endo ExecuteOptions)
 optionsExecuteOptions = oExecuteOptions
-
-getExecuteOptions :: Dual (Endo ExecuteOptions) -> ExecuteOptions
-getExecuteOptions f = appEndo (getDual f) defaultExecuteOptions
 
 parseOptions :: MonadIO m => [String] -> m Options
 parseOptions = parseArgs optionsParser
