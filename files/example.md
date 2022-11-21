@@ -9,7 +9,7 @@ overridden.
 
   --bash implies:
 
-    --filter=bash
+    --filter-tag=bash
     --comment-chars="#"
     --exec="bash"
     --arg="-s"
@@ -70,3 +70,11 @@ stackctl --filter "..." deploy --no-confirm
 ```bash
 psql_ -f ./scripts/upgrade/add-reg-types.sql
 ```
+
+The cleanup script just runs,
+
+```sql
+VACUUM FULL ANALYZE
+```
+
+(The above is to test ignoring blocks in the wrong language.)

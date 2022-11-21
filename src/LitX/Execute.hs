@@ -12,7 +12,8 @@ module LitX.Execute
     , inheritEnvL
 
     -- * Component types
-    , Filter(..)
+    , Filter
+    , filterCodeBlockTag
     , InheritEnv(..)
 
     -- * Execution
@@ -65,6 +66,9 @@ inheritEnvL = lens eoInheritEnv $ \x y -> x { eoInheritEnv = y }
 newtype Filter = Filter
     { runFilter :: CodeBlock -> Bool
     }
+
+filterCodeBlockTag :: Text -> Filter
+filterCodeBlockTag t = Filter $ (== t) . codeBlockTag
 
 instance ToJSON Filter where
     toJSON _ = toJSON ()

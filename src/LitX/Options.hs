@@ -56,7 +56,12 @@ languageOptionParsers = map languageOptionParser [minBound .. maxBound]
 
 executeOptionsParsers :: [Parser (Dual (Endo ExecuteOptions))]
 executeOptionsParsers =
-    [ eOptional (commentCharsL .~) strOption $ mconcat
+    [ eOptional ((filterL .~) . filterCodeBlockTag) strOption $ mconcat
+        [ long "filter-tag"
+        , metavar "TEXT"
+        , help "Filter to code blocks fo the given tag"
+        ]
+    , eOptional (commentCharsL .~) strOption $ mconcat
         [ long "comment-chars"
         , metavar "TEXT"
         , help "Set the characters used for line comments"

@@ -15,7 +15,6 @@ import Data.Aeson
 import Data.List (intercalate)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import LitX.CodeBlock
 import LitX.Execute
 import Options.Applicative
 
@@ -64,8 +63,7 @@ languageOptionParser language =
         | otherwise = " as " <> shown
 
 filterLanguage :: Language -> Filter
-filterLanguage language =
-    Filter $ (== languageCodeBlockTag language) . codeBlockTag
+filterLanguage = filterCodeBlockTag . languageCodeBlockTag
 
 readLanguage :: String -> Either String Language
 readLanguage x = note err $ Map.lookup x allLanguages
