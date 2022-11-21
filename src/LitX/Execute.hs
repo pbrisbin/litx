@@ -5,9 +5,6 @@ module LitX.Execute
     , defaultExecuteOptions
 
     -- Prefer lens access because of the 'Endo'-based Options parsing
-    , shebangL
-    , bannerL
-    , preambleL
     , commentCharsL
     , filterL
     , execL
@@ -33,9 +30,6 @@ import System.Process.Typed
 
 data ExecuteOptions = ExecuteOptions
     { eoFilter :: Filter
-    , eoShebang :: Text
-    , eoBanner :: Maybe Text
-    , eoPreamble :: Maybe Text
     , eoCommentChars :: Text
     , eoExec :: String
     , eoArgs :: [String]
@@ -47,9 +41,6 @@ data ExecuteOptions = ExecuteOptions
 defaultExecuteOptions :: ExecuteOptions
 defaultExecuteOptions = ExecuteOptions
     { eoFilter = Filter $ const False
-    , eoShebang = "/usr/bin/env cat"
-    , eoBanner = Nothing
-    , eoPreamble = Nothing
     , eoCommentChars = "#"
     , eoExec = "cat"
     , eoArgs = []
@@ -58,15 +49,6 @@ defaultExecuteOptions = ExecuteOptions
 
 filterL :: Lens' ExecuteOptions Filter
 filterL = lens eoFilter $ \x y -> x { eoFilter = y }
-
-shebangL :: Lens' ExecuteOptions Text
-shebangL = lens eoShebang $ \x y -> x { eoShebang = y }
-
-bannerL :: Lens' ExecuteOptions (Maybe Text)
-bannerL = lens eoBanner $ \x y -> x { eoBanner = y }
-
-preambleL :: Lens' ExecuteOptions (Maybe Text)
-preambleL = lens eoPreamble $ \x y -> x { eoPreamble = y }
 
 commentCharsL :: Lens' ExecuteOptions Text
 commentCharsL = lens eoCommentChars $ \x y -> x { eoCommentChars = y }
@@ -99,19 +81,12 @@ executeMarkdown ExecuteOptions {..} markdown = do
     let input = byteStringInput $ BSL.fromStrict $! encodeUtf8 script
     runProcess_ $ clearEnv $ setStdin input $ proc eoExec eoArgs
   where
-    script = mconcat
-        [ "#!" <> eoShebang <> "\n"
-        , maybe "" (<> "\n") eoBanner
-        , maybe "" (<> "\n\n") eoPreamble
-        , renderCodeBlocks
-        ]
-
     clearEnv = case eoInheritEnv of
         InheritEnv -> id
         Don'tInheritEnv -> setEnv []
 
-    renderCodeBlocks :: Text
-    renderCodeBlocks =
+    script :: Text
+    script =
         T.intercalate "\n"
             $ map renderCodeBlock
             $ filter (runFilter eoFilter)

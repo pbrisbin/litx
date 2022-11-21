@@ -32,7 +32,15 @@ So we put it in a markdown file.
 
 ## Setup
 
-We'll accept the enviroment to upgrade as the first and only argument, and
+Some general safety: ensure any failing commands or use of unset variables fail
+the script, and that failures in the first component of a pipeline fail the
+entire pipeline.
+
+```bash
+set -euo pipefail
+```
+
+We'll accept the environment to upgrade as the first and only argument, and
 assume AWS credentials are active. In order to talk to the DB, we have to use a
 special psql, which expects `$ENV`.
 
