@@ -10,6 +10,8 @@ overridden.
   --bash implies:
 
     --filter-tag=bash
+    --shebang="/usr/bin/env bash"
+    --preamble="set -euo pipefail"
     --comment-chars="#"
     --exec="bash"
     --arg="-s"
@@ -29,14 +31,6 @@ would like to:
 So we put it in a markdown file.
 
 ## Setup
-
-Some general safety: ensure any failing commands or use of unset variables fail
-the script, and that failures in the first component of a pipeline fail the
-entire pipeline.
-
-```bash
-set -euo pipefail
-```
 
 We'll accept the environment to upgrade as the first and only argument, and
 assume AWS credentials are active. In order to talk to the DB, we have to use a

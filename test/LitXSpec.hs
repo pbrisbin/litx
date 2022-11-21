@@ -4,7 +4,10 @@ module LitXSpec
 
 import LitX.Prelude
 
+import qualified Data.Text as T
+import Data.Version
 import LitX
+import qualified Paths_litx as Pkg
 import Test.Hspec
 
 spec :: Spec
@@ -21,5 +24,8 @@ spec = do
                 ]
 
             actual <- readFile tmp
-            expected <- readFile "files/example.bash"
+            expected <- replaceVersion <$> readFile "files/example.bash"
             actual `shouldBe` expected
+
+replaceVersion :: Text -> Text
+replaceVersion = T.replace "{version}" (pack $ showVersion Pkg.version)
