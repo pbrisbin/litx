@@ -85,6 +85,9 @@ See litx(1) for more details.
 
 ## Installation
 
+**NOTE**: OSX users will need to `brew install coreutils`, to have `ginstall`
+available.
+
 ### Binary Release
 
 1. Head over to [Releases](/releases) and choose a Release
@@ -99,6 +102,7 @@ See litx(1) for more details.
    make install PREFIX=$HOME/.local                     # for ~/.local/bin/lix
    rm -r ./litx                                         # optionally
    ```
+
 
 ### From Source
 
