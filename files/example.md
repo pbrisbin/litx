@@ -9,9 +9,7 @@ overridden.
 
   --bash implies:
 
-    --language=bash
-    --shebang="/usr/bin/env bash"
-    --preamble="set -euo pipefail"
+    --filter=bash
     --comment-chars="#"
     --exec="bash"
     --arg="-s"
