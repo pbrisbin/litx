@@ -63,15 +63,19 @@ library:
     - Blammo
     - aeson
     - cmark
+    - conduit
     - containers
+    #- exceptions
     - haskeline
     - microlens
     - mtl
     - optparse-applicative
+    - resourcet
     - semigroups
     - shellwords
     - text
     - typed-process
+    # - unliftio
     - unliftio-core
 
 executables:

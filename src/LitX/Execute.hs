@@ -1,5 +1,4 @@
 {-# LANGUAGE DerivingVia #-}
-
 module LitX.Execute
     ( ExecuteOptions
     , defaultExecuteOptions
@@ -26,9 +25,13 @@ module LitX.Execute
 
 import LitX.Prelude
 
+import Conduit
+import Control.Monad.State (evalStateT, gets, modify)
 import Data.Aeson
+import Data.Conduit.List (sourceList)
 import GHC.IO.Handle (hClose)
 import LitX.CodeBlock
+import LitX.Interactive (runInteractiveConduit)
 import qualified LitX.Interactive as Interactive
 import LitX.Parse (Markdown, markdownCodeBlocks)
 import System.Process.Typed
@@ -49,7 +52,7 @@ data ExecuteOptions = ExecuteOptions
 
 defaultExecuteOptions :: ExecuteOptions
 defaultExecuteOptions = ExecuteOptions
-    { eoFilter = Filter $ const False
+    { eoFilter = mempty
     , eoShebang = "/usr/bin/env cat"
     , eoBanner = Nothing
     , eoPreamble = Nothing
@@ -88,11 +91,15 @@ interactiveL :: Lens' ExecuteOptions Bool
 interactiveL = lens eoInteractive $ \x y -> x { eoInteractive = y }
 
 newtype Filter = Filter
-    { runFilter :: CodeBlock -> Bool
+    { unFilter :: CodeBlock -> All
     }
+    deriving newtype (Semigroup, Monoid)
+
+runFilter :: Filter -> CodeBlock -> Bool
+runFilter f = getAll . unFilter f
 
 filterCodeBlockTag :: Text -> Filter
-filterCodeBlockTag t = Filter $ (== t) . codeBlockTag
+filterCodeBlockTag t = Filter $ All . (== t) . codeBlockTag
 
 instance ToJSON Filter where
     toJSON _ = toJSON ()
@@ -109,30 +116,25 @@ executeMarkdown ExecuteOptions {..} markdown = do
     let pc = clearEnv $ setStdin createPipe $ proc eoExec eoArgs
 
     withProcessWait_ pc $ \p -> do
-        let h = getStdin p
-            blocks = filter (runFilter eoFilter) $ markdownCodeBlocks markdown
-
-            checkProcess = do
-                mExitCode <- getExitCode p
-                traverse_ (\_ -> checkExitCode p) mExitCode
-
-            onExecute block = do
-                hPutStr h $ "\n" <> renderCodeBlock block
-                hFlush h
-
-        hPutStr h $ "#!" <> eoShebang <> "\n"
-        traverse_ (hPutStr h . (<> "\n")) eoBanner
-        traverse_ (hPutStr h . (<> "\n")) eoPreamble
-
-        if eoInteractive
-            then Interactive.handleCodeBlocks blocks checkProcess onExecute
-            else traverse_ onExecute blocks
-
-        liftIO $ hClose h
+        runInteractiveConduit $ bracketP (pure $ getStdin p) hClose $ \h -> do
+            writeHeader h
+            markdownSource markdown
+                .| filterStatefully eoFilter
+                .| (if eoInteractive then Interactive.filter p else passC)
+                .| mapM_C (pushBlock h)
   where
     clearEnv = case eoInheritEnv of
         InheritEnv -> id
         Don'tInheritEnv -> setEnv []
+
+    writeHeader h = do
+        hPutStr h $ "#!" <> eoShebang <> "\n"
+        traverse_ (hPutStr h . (<> "\n")) eoBanner
+        traverse_ (hPutStr h . (<> "\n")) eoPreamble
+
+    pushBlock h block = do
+        hPutStr h $ "\n" <> renderCodeBlock block
+        hFlush h
 
     renderCodeBlock :: CodeBlock -> Text
     renderCodeBlock block =
@@ -141,12 +143,35 @@ executeMarkdown ExecuteOptions {..} markdown = do
             <> sourceAnnotation block
             <> codeBlockContent block
 
-    sourceAnnotation :: CodeBlock -> Text
-    sourceAnnotation block =
-        "index="
-            <> pack (show $ codeBlockIndex block)
-            <> " "
-            <> "source="
-            <> pack (codeBlockPath block)
-            <> maybe "" ((":" <>) . pack . show) (codeBlockLine block)
-            <> "\n"
+-- TODO: pragmas
+data MarkdownItem
+    = MarkdownPragma Filter
+    | MarkdownCodeBlock CodeBlock
+
+markdownSource :: Monad m => Markdown -> ConduitT () MarkdownItem m ()
+markdownSource = sourceList . map MarkdownCodeBlock . markdownCodeBlocks
+--
+
+filterStatefully :: Monad m => Filter -> ConduitT MarkdownItem CodeBlock m ()
+filterStatefully = evalStateT loop
+  where
+    loop = do
+        mItem <- lift await
+
+        for_ mItem $ \item -> do
+            case item of
+                MarkdownPragma f -> modify (<> f)
+                MarkdownCodeBlock cb -> do
+                    shouldYield <- gets (`runFilter` cb)
+                    when shouldYield $ lift $ yield cb
+            loop
+
+sourceAnnotation :: CodeBlock -> Text
+sourceAnnotation block =
+    "index="
+        <> pack (show $ codeBlockIndex block)
+        <> " "
+        <> "source="
+        <> pack (codeBlockPath block)
+        <> maybe "" ((":" <>) . pack . show) (codeBlockLine block)
+        <> "\n"

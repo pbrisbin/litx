@@ -1,21 +1,31 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module LitX.Interactive
-    ( handleCodeBlocks
+    ( runInteractiveConduit
+    , filter
     ) where
 
-import LitX.Prelude
+import LitX.Prelude hiding (filter)
 
-import Control.Monad (foldM_)
-import Control.Monad.IO.Unlift (withRunInIO)
-import Control.Monad.Trans (lift)
-import Data.Bool (bool)
+import Conduit
+import Control.Monad.Trans.Resource (MonadResource(..))
 import qualified Data.Text as T
+import GHC.IO.Handle (Handle)
 import LitX.CodeBlock
 import System.Console.Haskeline
+import System.Process.Typed (Process, checkExitCode, getExitCode)
+
+instance MonadResource m => MonadResource (InputT m) where
+    liftResourceT = lift . liftResourceT
+
+runInteractiveConduit
+    :: MonadIO m => ConduitT () Void (InputT (ResourceT IO)) r -> m r
+runInteractiveConduit =
+    liftIO . runResourceT . runInputT defaultSettings . runConduit
 
 data InteractiveState
     = Prompting
-    | ExecutingRest
-    | SkippingRest
+    | Executing
 
 data PromptResult
     = Execute
@@ -24,40 +34,39 @@ data PromptResult
     | SkipRest
     -- | Edit
 
-handleCodeBlocks
-    :: MonadUnliftIO m => [CodeBlock] -> m () -> (CodeBlock -> m ()) -> m ()
-handleCodeBlocks blocks checkProcess onExecute = withRunInIO $ \runInIO ->
-    runInputT defaultSettings $ foldM_
-        (handleCodeBlock (runInIO checkProcess) (runInIO . onExecute))
-        Prompting
-        blocks
-
-handleCodeBlock
-    :: IO ()
-    -> (CodeBlock -> IO ())
-    -> InteractiveState
-    -> CodeBlock
-    -> InputT IO InteractiveState
-handleCodeBlock checkProcess onExecute executing block = do
-    lift checkProcess
-
-    case executing of
+filter
+    :: Process Handle () ()
+    -> ConduitT CodeBlock CodeBlock (InputT (ResourceT IO)) ()
+filter p = loop Prompting
+  where
+    loop = \case
         Prompting -> do
-            result <- promptCodeBlock block
+            mBlock <- await
 
-            case result of
-                Execute -> do
-                    outputTextLn "Executing... press any key to continue."
-                    lift $ onExecute block
-                    bool SkippingRest executing <$> waitForAnyKey ""
-                ExecuteRest -> ExecutingRest <$ lift (onExecute block)
-                Skip -> pure executing
-                SkipRest -> pure SkippingRest
+            for_ mBlock $ \block -> do
+                checkOnProcess p
 
-        ExecutingRest -> executing <$ lift (onExecute block)
-        SkippingRest -> pure SkippingRest
+                result <- lift $ promptCodeBlock block
 
-promptCodeBlock :: CodeBlock -> InputT IO PromptResult
+                case result of
+                    Execute -> yieldAndLoopWith Prompting block
+                    ExecuteRest -> yieldAndLoopWith Executing block
+                    Skip -> loop Prompting
+                    SkipRest -> pure ()
+
+        Executing -> passC
+
+    yieldAndLoopWith x block = do
+        lift $ outputTextLn ""
+        yield block
+        lift $ outputTextLn "Executed. Press any key to continue."
+        flip when (loop x) =<< lift (waitForAnyKey "")
+
+checkOnProcess :: MonadIO m => Process Handle () () -> m ()
+checkOnProcess p = do
+    traverse_ (\_ -> checkExitCode p) =<< getExitCode p
+
+promptCodeBlock :: CodeBlock -> InputT (ResourceT IO) PromptResult
 promptCodeBlock block = do
     outputTextLn
         $ "  ╔══[ "

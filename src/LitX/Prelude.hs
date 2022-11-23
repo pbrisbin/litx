@@ -22,6 +22,9 @@ module LitX.Prelude
 
     -- * CMark
     , walkNodes
+
+    -- * Conduit
+    , passC
     ) where
 
 import Prelude as X hiding
@@ -32,9 +35,10 @@ import Control.Arrow as X ((&&&), (***))
 import Control.Monad as X (unless, void, when, (<=<))
 import Control.Monad.IO.Class as X (MonadIO(..))
 import Control.Monad.IO.Unlift as X (MonadUnliftIO)
-import Data.Foldable as X (fold, traverse_)
+import Data.Foldable as X (fold, for_, traverse_)
 import Data.Maybe as X (catMaybes, fromMaybe, listToMaybe, mapMaybe)
-import Data.Semigroup as X (Dual(..), Endo(..), First(..), Last(..), Sum(..))
+import Data.Semigroup as X
+    (All(..), Dual(..), Endo(..), First(..), Last(..), Sum(..))
 import Data.Semigroup.Generic as X (GenericSemigroupMonoid(..))
 import Data.String as X (IsString(..))
 import Data.Text as X (Text, pack, unpack)
@@ -44,6 +48,7 @@ import Lens.Micro as X (Lens', lens, (&), (.~), (<&>), (<>~), (?~), (^.))
 import Numeric.Natural as X (Natural)
 
 import CMark (Node(..))
+import Conduit (ConduitT, awaitForever, yield)
 import Control.Monad.State (evalState, get, modify)
 import Data.List (sortOn)
 import qualified Data.List.NonEmpty as NE
@@ -119,3 +124,6 @@ walkNodes f = flip evalState 0 . go
 
 nodeChildren :: Node -> [Node]
 nodeChildren (Node _ _ children) = children
+
+passC :: Monad m => ConduitT i i m ()
+passC = awaitForever yield

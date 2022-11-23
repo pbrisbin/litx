@@ -72,11 +72,13 @@ library
     , aeson
     , base ==4.*
     , cmark
+    , conduit
     , containers
     , haskeline
     , microlens
     , mtl
     , optparse-applicative
+    , resourcet
     , semigroups
     , shellwords
     , text
