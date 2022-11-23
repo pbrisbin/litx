@@ -11,8 +11,8 @@ import qualified ShellWords
 getPragmaArgs :: Node -> Maybe [String]
 getPragmaArgs = listToMaybe . walkNodes nodeToLitX
 
-nodeToLitX :: Node -> Maybe [String]
-nodeToLitX = \case
+nodeToLitX :: Natural -> Node -> Maybe [String]
+nodeToLitX _ = \case
     Node _ (HTML_BLOCK html) _ -> htmlToLitX html
     Node _ (HTML_INLINE html) _ -> htmlToLitX html
     _ -> Nothing

@@ -1,6 +1,7 @@
 module LitX.CodeBlock
     ( CodeBlock
     , codeBlock
+    , codeBlockIndex
     , codeBlockTag
     , codeBlockPath
     , codeBlockLine
@@ -12,7 +13,8 @@ import LitX.Prelude
 import Data.Aeson
 
 data CodeBlock = CodeBlock
-    { cbTag :: Text
+    { cbIndex :: Natural
+    , cbTag :: Text
     , cbPath :: FilePath
     , cbLine :: Maybe Int
     , cbContent :: Text
@@ -20,8 +22,11 @@ data CodeBlock = CodeBlock
     deriving stock Generic
     deriving anyclass ToJSON
 
-codeBlock :: Text -> FilePath -> Maybe Int -> Text -> CodeBlock
+codeBlock :: Natural -> Text -> FilePath -> Maybe Int -> Text -> CodeBlock
 codeBlock = CodeBlock
+
+codeBlockIndex :: CodeBlock -> Natural
+codeBlockIndex = cbIndex
 
 codeBlockTag :: CodeBlock -> Text
 codeBlockTag = cbTag

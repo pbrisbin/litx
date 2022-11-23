@@ -63,8 +63,8 @@ parseMarkdown input = do
 getCodeBlocks :: FilePath -> Node -> [CodeBlock]
 getCodeBlocks path = walkNodes $ nodeToCodeBlock path
 
-nodeToCodeBlock :: FilePath -> Node -> Maybe CodeBlock
-nodeToCodeBlock path = \case
+nodeToCodeBlock :: FilePath -> Natural -> Node -> Maybe CodeBlock
+nodeToCodeBlock path n = \case
     Node mPosInfo (CODE_BLOCK info content) _ ->
-        Just $ codeBlock info path (startLine <$> mPosInfo) content
+        Just $ codeBlock n info path (startLine <$> mPosInfo) content
     _ -> Nothing

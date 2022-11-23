@@ -13,6 +13,7 @@ module LitX.Execute
     , execL
     , argsL
     , inheritEnvL
+    , interactiveL
 
     -- * Component types
     , Filter
@@ -26,9 +27,10 @@ module LitX.Execute
 import LitX.Prelude
 
 import Data.Aeson
-import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Text as T
+import GHC.IO.Handle (hClose)
 import LitX.CodeBlock
+import qualified LitX.Interactive as Interactive
 import LitX.Parse (Markdown, markdownCodeBlocks)
 import System.Process.Typed
 
@@ -41,6 +43,7 @@ data ExecuteOptions = ExecuteOptions
     , eoExec :: String
     , eoArgs :: [String]
     , eoInheritEnv :: InheritEnv
+    , eoInteractive :: Bool
     }
     deriving stock Generic
     deriving anyclass ToJSON
@@ -55,6 +58,7 @@ defaultExecuteOptions = ExecuteOptions
     , eoExec = "cat"
     , eoArgs = []
     , eoInheritEnv = InheritEnv
+    , eoInteractive = False
     }
 
 filterL :: Lens' ExecuteOptions Filter
@@ -81,6 +85,9 @@ argsL = lens eoArgs $ \x y -> x { eoArgs = y }
 inheritEnvL :: Lens' ExecuteOptions InheritEnv
 inheritEnvL = lens eoInheritEnv $ \x y -> x { eoInheritEnv = y }
 
+interactiveL :: Lens' ExecuteOptions Bool
+interactiveL = lens eoInteractive $ \x y -> x { eoInteractive = y }
+
 newtype Filter = Filter
     { runFilter :: CodeBlock -> Bool
     }
@@ -100,26 +107,32 @@ data InheritEnv
 
 executeMarkdown :: MonadUnliftIO m => ExecuteOptions -> Markdown -> m ()
 executeMarkdown ExecuteOptions {..} markdown = do
-    let input = byteStringInput $ BSL.fromStrict $! encodeUtf8 script
-    runProcess_ $ clearEnv $ setStdin input $ proc eoExec eoArgs
-  where
-    script = mconcat
-        [ "#!" <> eoShebang <> "\n"
-        , maybe "" (<> "\n") eoBanner
-        , maybe "" (<> "\n\n") eoPreamble
-        , renderCodeBlocks
-        ]
+    let pc = clearEnv $ setStdin createPipe $ proc eoExec eoArgs
 
+    withProcessWait_ pc $ \p -> do
+        let h = getStdin p
+            blocks = filter (runFilter eoFilter) $ markdownCodeBlocks markdown
+            checkProcess = do
+                mExitCode <- getExitCode p
+                traverse_ (\_ -> checkExitCode p) mExitCode
+
+        hPutStr h $ "#!" <> eoShebang <> "\n"
+        traverse_ (hPutStr h . (<> "\n")) eoBanner
+        traverse_ (hPutStr h . (<> "\n")) eoPreamble
+
+        if eoInteractive
+            then Interactive.handleCodeBlocks blocks checkProcess $ \block -> do
+                hPutStr h $ "\n" <> renderCodeBlock block
+                hFlush h
+            else do
+                hPutStrLn h ""
+                hPutStr h $ T.intercalate "\n" $ map renderCodeBlock blocks
+
+        liftIO $ hClose h
+  where
     clearEnv = case eoInheritEnv of
         InheritEnv -> id
         Don'tInheritEnv -> setEnv []
-
-    renderCodeBlocks :: Text
-    renderCodeBlocks =
-        T.intercalate "\n"
-            $ map renderCodeBlock
-            $ filter (runFilter eoFilter)
-            $ markdownCodeBlocks markdown
 
     renderCodeBlock :: CodeBlock -> Text
     renderCodeBlock block =
@@ -130,7 +143,10 @@ executeMarkdown ExecuteOptions {..} markdown = do
 
     sourceAnnotation :: CodeBlock -> Text
     sourceAnnotation block =
-        "source="
+        "index="
+            <> pack (show $ codeBlockIndex block)
+            <> " "
+            <> "source="
             <> pack (codeBlockPath block)
             <> maybe "" ((":" <>) . pack . show) (codeBlockLine block)
             <> "\n"

@@ -11,7 +11,12 @@ module LitX.Prelude
 
     -- * IO
     , putStr
+    , putStrLn
     , getContents
+    , getLine
+    , hPutStr
+    , hPutStrLn
+    , hFlush
     , readFile
     , writeFile
 
@@ -19,14 +24,15 @@ module LitX.Prelude
     , walkNodes
     ) where
 
-import Prelude as X hiding (getContents, putStr, readFile, writeFile)
+import Prelude as X hiding
+    (getContents, getLine, putStr, putStrLn, readFile, writeFile)
 
 import Control.Applicative as X ((<|>))
 import Control.Arrow as X ((&&&), (***))
 import Control.Monad as X (unless, void, when, (<=<))
 import Control.Monad.IO.Class as X (MonadIO(..))
 import Control.Monad.IO.Unlift as X (MonadUnliftIO)
-import Data.Foldable as X (fold)
+import Data.Foldable as X (fold, traverse_)
 import Data.Maybe as X (catMaybes, fromMaybe, listToMaybe, mapMaybe)
 import Data.Semigroup as X (Dual(..), Endo(..), First(..), Last(..), Sum(..))
 import Data.Semigroup.Generic as X (GenericSemigroupMonoid(..))
@@ -35,13 +41,17 @@ import Data.Text as X (Text, pack, unpack)
 import Data.Text.Encoding as X (encodeUtf8)
 import GHC.Generics as X (Generic)
 import Lens.Micro as X (Lens', lens, (&), (.~), (<&>), (<>~), (?~), (^.))
+import Numeric.Natural as X (Natural)
 
 import CMark (Node(..))
+import Control.Monad.State (evalState, get, modify)
 import Data.List (sortOn)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map.Strict as Map
 import Data.Ord (Down(..))
 import qualified Data.Text.IO as T
+import GHC.IO.Handle (Handle)
+import qualified System.IO as IO
 
 snoc :: [a] -> a -> [a]
 snoc as a = as <> [a]
@@ -71,8 +81,23 @@ fromMaybeM ma mma = maybe ma pure =<< mma
 getContents :: MonadIO m => m Text
 getContents = liftIO T.getContents
 
+getLine :: MonadIO m => m Text
+getLine = liftIO T.getLine
+
 putStr :: MonadIO m => Text -> m ()
 putStr = liftIO . T.putStr
+
+putStrLn :: MonadIO m => Text -> m ()
+putStrLn = liftIO . T.putStrLn
+
+hPutStr :: MonadIO m => Handle -> Text -> m ()
+hPutStr h = liftIO . T.hPutStr h
+
+hFlush :: MonadIO m => Handle -> m ()
+hFlush = liftIO . IO.hFlush
+
+hPutStrLn :: MonadIO m => Handle -> Text -> m ()
+hPutStrLn h = liftIO . T.hPutStrLn h
 
 readFile :: MonadIO m => FilePath -> m Text
 readFile = liftIO . T.readFile
@@ -80,9 +105,17 @@ readFile = liftIO . T.readFile
 writeFile :: MonadIO m => FilePath -> Text -> m ()
 writeFile p = liftIO . T.writeFile p
 
-walkNodes :: (Node -> Maybe a) -> Node -> [a]
-walkNodes f node =
-    maybe id (flip snoc) (f node) $ concatMap (walkNodes f) $ nodeChildren node
+walkNodes :: (Natural -> Node -> Maybe a) -> Node -> [a]
+walkNodes f = flip evalState 0 . go
+  where
+    go node = do
+        n <- get
+        as <- case f n node of
+            Nothing -> pure []
+            Just a -> [a] <$ modify (+ 1)
+
+        rest <- concat <$> traverse go (nodeChildren node)
+        pure $ as <> rest
 
 nodeChildren :: Node -> [Node]
 nodeChildren (Node _ _ children) = children

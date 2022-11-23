@@ -103,6 +103,10 @@ executeOptionsParsers =
         [ long "no-env"
         , help "Don't inherit ENV in the executed process"
         ]
+    , eSwitch (interactiveL .~ True) $ mconcat
+        [ long "interactive"
+        , help "Prompt before executing each code block"
+        ]
     ]
 
 setExec :: String -> ExecuteOptions -> ExecuteOptions

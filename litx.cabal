@@ -30,6 +30,7 @@ library
       LitX
       LitX.CodeBlock
       LitX.Execute
+      LitX.Interactive
       LitX.Language
       LitX.Options
       LitX.Options.Pragma
@@ -70,10 +71,11 @@ library
       Blammo
     , aeson
     , base ==4.*
-    , bytestring
     , cmark
     , containers
+    , haskeline
     , microlens
+    , mtl
     , optparse-applicative
     , semigroups
     , shellwords

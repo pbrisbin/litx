@@ -61,11 +61,12 @@ library:
   source-dirs: src
   dependencies:
     - Blammo
-    - bytestring
     - aeson
     - cmark
     - containers
+    - haskeline
     - microlens
+    - mtl
     - optparse-applicative
     - semigroups
     - shellwords
