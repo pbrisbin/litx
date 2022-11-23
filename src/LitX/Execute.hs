@@ -27,7 +27,6 @@ module LitX.Execute
 import LitX.Prelude
 
 import Data.Aeson
-import qualified Data.Text as T
 import GHC.IO.Handle (hClose)
 import LitX.CodeBlock
 import qualified LitX.Interactive as Interactive
@@ -112,21 +111,22 @@ executeMarkdown ExecuteOptions {..} markdown = do
     withProcessWait_ pc $ \p -> do
         let h = getStdin p
             blocks = filter (runFilter eoFilter) $ markdownCodeBlocks markdown
+
             checkProcess = do
                 mExitCode <- getExitCode p
                 traverse_ (\_ -> checkExitCode p) mExitCode
+
+            onExecute block = do
+                hPutStr h $ "\n" <> renderCodeBlock block
+                hFlush h
 
         hPutStr h $ "#!" <> eoShebang <> "\n"
         traverse_ (hPutStr h . (<> "\n")) eoBanner
         traverse_ (hPutStr h . (<> "\n")) eoPreamble
 
         if eoInteractive
-            then Interactive.handleCodeBlocks blocks checkProcess $ \block -> do
-                hPutStr h $ "\n" <> renderCodeBlock block
-                hFlush h
-            else do
-                hPutStrLn h ""
-                hPutStr h $ T.intercalate "\n" $ map renderCodeBlock blocks
+            then Interactive.handleCodeBlocks blocks checkProcess onExecute
+            else traverse_ onExecute blocks
 
         liftIO $ hClose h
   where
