@@ -1,156 +1,70 @@
-{-# LANGUAGE DerivingVia #-}
 module LitX.Execute
-    ( ExecuteOptions
-    , defaultExecuteOptions
-
-    -- Prefer lens access because of the 'Endo'-based Options parsing
-    , shebangL
-    , bannerL
-    , preambleL
-    , commentCharsL
-    , filterL
-    , execL
-    , argsL
-    , inheritEnvL
-    , interactiveL
-
-    -- * Component types
-    , Filter
-    , filterCodeBlockTag
-    , InheritEnv(..)
-
-    -- * Execution
-    , executeMarkdown
+    ( executeMarkdown
+    , executeSource
     ) where
 
 import LitX.Prelude
 
 import Conduit
 import Control.Monad.State (evalStateT, gets, modify)
-import Data.Aeson
-import Data.Conduit.List (sourceList)
-import GHC.IO.Handle (hClose)
+import Data.ByteString (ByteString)
+import GHC.IO.Handle (Handle, hClose)
 import LitX.CodeBlock
-import LitX.Interactive (runInteractiveConduit)
+import LitX.Execute.Options
 import qualified LitX.Interactive as Interactive
-import LitX.Parse (Markdown, markdownCodeBlocks)
+import LitX.Interactive.Class (runInteractiveIO)
+import LitX.Parse.Markdown (Markdown, MarkdownItem(..), markdownSource)
 import System.Process.Typed
 
-data ExecuteOptions = ExecuteOptions
-    { eoFilter :: Filter
-    , eoShebang :: Text
-    , eoBanner :: Maybe Text
-    , eoPreamble :: Maybe Text
-    , eoCommentChars :: Text
-    , eoExec :: String
-    , eoArgs :: [String]
-    , eoInheritEnv :: InheritEnv
-    , eoInteractive :: Bool
-    }
-    deriving stock Generic
-    deriving anyclass ToJSON
-
-defaultExecuteOptions :: ExecuteOptions
-defaultExecuteOptions = ExecuteOptions
-    { eoFilter = mempty
-    , eoShebang = "/usr/bin/env cat"
-    , eoBanner = Nothing
-    , eoPreamble = Nothing
-    , eoCommentChars = "#"
-    , eoExec = "cat"
-    , eoArgs = []
-    , eoInheritEnv = InheritEnv
-    , eoInteractive = False
-    }
-
-filterL :: Lens' ExecuteOptions Filter
-filterL = lens eoFilter $ \x y -> x { eoFilter = y }
-
-shebangL :: Lens' ExecuteOptions Text
-shebangL = lens eoShebang $ \x y -> x { eoShebang = y }
-
-bannerL :: Lens' ExecuteOptions (Maybe Text)
-bannerL = lens eoBanner $ \x y -> x { eoBanner = y }
-
-preambleL :: Lens' ExecuteOptions (Maybe Text)
-preambleL = lens eoPreamble $ \x y -> x { eoPreamble = y }
-
-commentCharsL :: Lens' ExecuteOptions Text
-commentCharsL = lens eoCommentChars $ \x y -> x { eoCommentChars = y }
-
-execL :: Lens' ExecuteOptions String
-execL = lens eoExec $ \x y -> x { eoExec = y }
-
-argsL :: Lens' ExecuteOptions [String]
-argsL = lens eoArgs $ \x y -> x { eoArgs = y }
-
-inheritEnvL :: Lens' ExecuteOptions InheritEnv
-inheritEnvL = lens eoInheritEnv $ \x y -> x { eoInheritEnv = y }
-
-interactiveL :: Lens' ExecuteOptions Bool
-interactiveL = lens eoInteractive $ \x y -> x { eoInteractive = y }
-
-newtype Filter = Filter
-    { unFilter :: CodeBlock -> All
-    }
-    deriving newtype (Semigroup, Monoid)
-
-runFilter :: Filter -> CodeBlock -> Bool
-runFilter f = getAll . unFilter f
-
-filterCodeBlockTag :: Text -> Filter
-filterCodeBlockTag t = Filter $ All . (== t) . codeBlockTag
-
-instance ToJSON Filter where
-    toJSON _ = toJSON ()
-    toEncoding _ = toEncoding ()
-
-data InheritEnv
-    = InheritEnv
-    | Don'tInheritEnv
-    deriving stock Generic
-    deriving anyclass ToJSON
-
 executeMarkdown :: MonadUnliftIO m => ExecuteOptions -> Markdown -> m ()
-executeMarkdown ExecuteOptions {..} markdown = do
-    let pc = clearEnv $ setStdin createPipe $ proc eoExec eoArgs
-
-    withProcessWait_ pc $ \p -> do
-        runInteractiveConduit $ bracketP (pure $ getStdin p) hClose $ \h -> do
-            writeHeader h
-            markdownSource markdown
-                .| filterStatefully eoFilter
-                .| (if eoInteractive then Interactive.filter p else passC)
-                .| mapM_C (pushBlock h)
+executeMarkdown options markdown = withProcessWait_ pc $ \p ->
+    runInteractiveIO $ runConduit $ bracketP (pure $ getStdin p) hClose $ run p
   where
-    clearEnv = case eoInheritEnv of
-        InheritEnv -> id
-        Don'tInheritEnv -> setEnv []
+    run p h =
+        executeSource options markdown (interactivity p)
+            .| concatMapC textToFlush
+            .| sinkHandleFlush h
 
-    writeHeader h = do
-        hPutStr h $ "#!" <> eoShebang <> "\n"
-        traverse_ (hPutStr h . (<> "\n")) eoBanner
-        traverse_ (hPutStr h . (<> "\n")) eoPreamble
+    pc =
+        case options ^. inheritEnvL of
+                InheritEnv -> id
+                Don'tInheritEnv -> setEnv []
+            $ setStdin createPipe
+            $ proc (options ^. execL) (options ^. argsL)
 
-    pushBlock h block = do
-        hPutStr h $ "\n" <> renderCodeBlock block
-        hFlush h
+    interactivity p =
+        iterMC (\_ -> checkOnProcess p)
+            .| if options ^. interactiveL then Interactive.filter else passC
 
-    renderCodeBlock :: CodeBlock -> Text
+executeSource
+    :: Monad m
+    => ExecuteOptions
+    -> Markdown
+    -> ConduitT CodeBlock CodeBlock m ()
+    -> ConduitT () Text m ()
+executeSource options markdown interactivity = do
+    yield $ "#!" <> options ^. shebangL <> "\n"
+    traverse_ (yield . (<> "\n")) $ options ^. bannerL
+    traverse_ (yield . (<> "\n")) $ options ^. preambleL
+    markdownSource markdown
+        .| filterStatefully (options ^. filterL)
+        .| interactivity
+        .| mapC (("\n" <>) . renderCodeBlock)
+  where
     renderCodeBlock block =
-        eoCommentChars
+        options
+            ^. commentCharsL
             <> " "
             <> sourceAnnotation block
             <> codeBlockContent block
 
--- TODO: pragmas
-data MarkdownItem
-    = MarkdownPragma Filter
-    | MarkdownCodeBlock CodeBlock
+textToFlush :: Text -> [Flush ByteString]
+textToFlush t = [Chunk $ encodeUtf8 t, Flush]
 
-markdownSource :: Monad m => Markdown -> ConduitT () MarkdownItem m ()
-markdownSource = sourceList . map MarkdownCodeBlock . markdownCodeBlocks
---
+checkOnProcess :: MonadIO m => Process Handle () () -> m ()
+checkOnProcess p = do
+    m <- getExitCode p
+    traverse_ (\_ -> checkExitCode p) m
 
 filterStatefully :: Monad m => Filter -> ConduitT MarkdownItem CodeBlock m ()
 filterStatefully = evalStateT loop
@@ -160,7 +74,9 @@ filterStatefully = evalStateT loop
 
         for_ mItem $ \item -> do
             case item of
-                MarkdownPragma f -> modify (<> f)
+                MarkdownPragma{} -> pure ()
+                MarkdownPragmaError{} -> pure ()
+                MarkdownFilterPragma f -> modify (<> f)
                 MarkdownCodeBlock cb -> do
                     shouldYield <- gets (`runFilter` cb)
                     when shouldYield $ lift $ yield cb

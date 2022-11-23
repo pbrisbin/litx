@@ -1,27 +1,13 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
-
 module LitX.Interactive
-    ( runInteractiveConduit
-    , filter
+    ( filter
     ) where
 
 import LitX.Prelude hiding (filter)
 
 import Conduit
-import Control.Monad.Trans.Resource (MonadResource(..))
 import qualified Data.Text as T
-import GHC.IO.Handle (Handle)
 import LitX.CodeBlock
-import System.Console.Haskeline
-import System.Process.Typed (Process, checkExitCode, getExitCode)
-
-instance MonadResource m => MonadResource (InputT m) where
-    liftResourceT = lift . liftResourceT
-
-runInteractiveConduit
-    :: MonadIO m => ConduitT () Void (InputT (ResourceT IO)) r -> m r
-runInteractiveConduit =
-    liftIO . runResourceT . runInputT defaultSettings . runConduit
+import LitX.Interactive.Class
 
 data InteractiveState
     = Prompting
@@ -34,18 +20,14 @@ data PromptResult
     | SkipRest
     -- | Edit
 
-filter
-    :: Process Handle () ()
-    -> ConduitT CodeBlock CodeBlock (InputT (ResourceT IO)) ()
-filter p = loop Prompting
+filter :: ConduitT CodeBlock CodeBlock InteractiveIO ()
+filter = loop Prompting
   where
     loop = \case
         Prompting -> do
             mBlock <- await
 
             for_ mBlock $ \block -> do
-                checkOnProcess p
-
                 result <- lift $ promptCodeBlock block
 
                 case result of
@@ -59,24 +41,12 @@ filter p = loop Prompting
     yieldAndLoopWith x block = do
         lift $ outputTextLn ""
         yield block
-        lift $ outputTextLn "Executed. Press any key to continue."
+        lift $ outputTextLn "Executed. Press any key when ready to continue."
         flip when (loop x) =<< lift (waitForAnyKey "")
 
-checkOnProcess :: MonadIO m => Process Handle () () -> m ()
-checkOnProcess p = do
-    traverse_ (\_ -> checkExitCode p) =<< getExitCode p
-
-promptCodeBlock :: CodeBlock -> InputT (ResourceT IO) PromptResult
+promptCodeBlock :: CodeBlock -> InteractiveIO PromptResult
 promptCodeBlock block = do
-    outputTextLn
-        $ "  ╔══[ "
-        <> codeBlockTag block
-        <> "/"
-        <> pack (show $ codeBlockIndex block)
-        <> ": "
-        <> pack (codeBlockPath block)
-        <> maybe "" ((":" <>) . pack . show) (codeBlockLine block)
-        <> " ]"
+    outputTextLn $ "  ╔══[ " <> blockName <> " ]"
     outputTextLn "  ║ "
     traverse_ (outputTextLn . ("  ║ " <>)) $ T.lines $ codeBlockContent block
     outputTextLn "  ║ "
@@ -91,6 +61,14 @@ promptCodeBlock block = do
         _ -> do
             outputTextLn helpBlock
             promptCodeBlock block
+  where
+    blockName =
+        codeBlockTag block
+            <> "/"
+            <> pack (show $ codeBlockIndex block)
+            <> ": "
+            <> pack (codeBlockPath block)
+            <> maybe "" ((":" <>) . pack . show) (codeBlockLine block)
 
 helpBlock :: Text
 helpBlock = T.intercalate
@@ -104,6 +82,3 @@ helpBlock = T.intercalate
     , "  h: show this help"
     , ""
     ]
-
-outputTextLn :: MonadIO m => Text -> InputT m ()
-outputTextLn = outputStrLn . unpack

@@ -11,12 +11,11 @@ module LitX.Language
 
 import LitX.Prelude
 
-import Data.Aeson
 import Data.List (intercalate)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Version
-import LitX.Execute
+import LitX.Execute.Options
 import Options.Applicative
 import qualified Paths_litx as Pkg
 
@@ -24,10 +23,6 @@ data Language
     = Bash
     | Python
     deriving stock (Eq, Ord, Enum, Bounded)
-
-instance ToJSON Language where
-    toJSON = toJSON . showLanguage
-    toEncoding = toEncoding . showLanguage
 
 showLanguage :: Language -> String
 showLanguage = \case

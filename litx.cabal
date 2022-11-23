@@ -30,11 +30,13 @@ library
       LitX
       LitX.CodeBlock
       LitX.Execute
+      LitX.Execute.Options
       LitX.Interactive
+      LitX.Interactive.Class
       LitX.Language
       LitX.Options
-      LitX.Options.Pragma
       LitX.Parse
+      LitX.Parse.Markdown
       LitX.Prelude
   other-modules:
       Paths_litx
@@ -68,9 +70,8 @@ library
       TypeFamilies
   ghc-options: -fwrite-ide-info -Weverything -Wno-all-missed-specialisations -Wno-missing-import-lists -Wno-missing-local-signatures -Wno-missing-safe-haskell-mode -Wno-prepositive-qualified-module -Wno-unsafe -optP-Wno-nonportable-include-path
   build-depends:
-      Blammo
-    , aeson
-    , base ==4.*
+      base ==4.*
+    , bytestring
     , cmark
     , conduit
     , containers
@@ -128,7 +129,6 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      LitX.Options.PragmaSpec
       LitXSpec
       Paths_litx
   hs-source-dirs:
@@ -162,7 +162,6 @@ test-suite spec
   ghc-options: -fwrite-ide-info -Weverything -Wno-all-missed-specialisations -Wno-missing-import-lists -Wno-missing-local-signatures -Wno-missing-safe-haskell-mode -Wno-prepositive-qualified-module -Wno-unsafe -optP-Wno-nonportable-include-path
   build-depends:
       base ==4.*
-    , cmark
     , hspec
     , litx
     , text

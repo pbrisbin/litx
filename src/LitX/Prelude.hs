@@ -8,6 +8,7 @@ module LitX.Prelude
     , mostFrequent
     , mostFrequentBy
     , fromMaybeM
+    , foldMapM
 
     -- * IO
     , putStr
@@ -82,6 +83,16 @@ mostFrequentBy f =
 
 fromMaybeM :: Monad m => m a -> m (Maybe a) -> m a
 fromMaybeM ma mma = maybe ma pure =<< mma
+
+foldMapM
+    :: forall b m f a
+     . (Monoid b, Monad m, Foldable f)
+    => (a -> m b)
+    -> f a
+    -> m b
+foldMapM f xs = foldr step return xs mempty
+    where step x r z = f x >>= \y -> r $! z `mappend` y
+{-# INLINE foldMapM #-}
 
 getContents :: MonadIO m => m Text
 getContents = liftIO T.getContents

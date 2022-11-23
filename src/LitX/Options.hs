@@ -2,16 +2,20 @@ module LitX.Options
     ( Options
     , optionsInput
     , optionsExecuteOptions
+    , Input
+    , showInput
+    , inputGetContents
     , parseOptions
     , parseExecuteOptions
+    , executeOptionsParser
     , getExecuteOptions
+    , parsePragma
     ) where
 
 import LitX.Prelude
 
-import LitX.Execute
+import LitX.Execute.Options
 import LitX.Language
-import LitX.Parse
 import Options.Applicative
 
 data Options = Options
@@ -24,6 +28,26 @@ optionsInput = oInput
 
 optionsExecuteOptions :: Options -> Dual (Endo ExecuteOptions)
 optionsExecuteOptions = oExecuteOptions
+
+data Input
+    = InputStdin
+    | InputFile FilePath
+
+instance IsString Input where
+    fromString = \case
+        "-" -> InputStdin
+        path -> InputFile path
+
+showInput :: Input -> String
+showInput = \case
+    InputStdin -> "-"
+    InputFile path -> path
+
+inputGetContents :: MonadIO m => Input -> m Text
+inputGetContents = \case
+    InputStdin -> getContents
+    InputFile path -> readFile path
+
 
 getExecuteOptions :: Dual (Endo ExecuteOptions) -> ExecuteOptions
 getExecuteOptions f = appEndo (getDual f) defaultExecuteOptions
@@ -120,6 +144,15 @@ parseArgs parser = liftIO . handleParseResult . execParserPure defaultPrefs p
             $ progDesc "Execute Literate Markdown programs"
             <> fullDesc
             <> footer "See litx(1) for more details."
+
+parsePragma :: Parser a -> [String] -> Either String a
+parsePragma parser = fromParseResult . execParserPure defaultPrefs p
+  where
+    p = info (parser <**> helper) fullDesc
+    fromParseResult = \case
+        Success a -> Right a
+        Failure f -> Left $ show f
+        CompletionInvoked{} -> Left "Unexpected completion"
 
 eOptional
     :: (a -> b -> b)

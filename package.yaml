@@ -60,12 +60,10 @@ default-extensions:
 library:
   source-dirs: src
   dependencies:
-    - Blammo
-    - aeson
+    - bytestring
     - cmark
     - conduit
     - containers
-    #- exceptions
     - haskeline
     - microlens
     - mtl
@@ -75,7 +73,6 @@ library:
     - shellwords
     - text
     - typed-process
-    # - unliftio
     - unliftio-core
 
 executables:
@@ -94,7 +91,6 @@ tests:
     main: Spec.hs
     source-dirs: test
     dependencies:
-      - cmark
       - hspec
       - litx
       - text
