@@ -88,7 +88,7 @@ executeOptionsParsers =
     [ eOptional ((filterL .~) . filterCodeBlockTag) strOption $ mconcat
         [ long "filter-tag"
         , metavar "TEXT"
-        , help "Filter to code blocks fo the given tag"
+        , help "Filter to code-blocks of the given tag"
         ]
     , eOptional (shebangL .~) strOption $ mconcat
         [ long "shebang"
@@ -129,7 +129,7 @@ executeOptionsParsers =
         ]
     , eSwitch (interactiveL .~ True) $ mconcat
         [ long "interactive"
-        , help "Prompt before executing each code block"
+        , help "Prompt before executing each code-block"
         ]
     ]
 

@@ -56,7 +56,7 @@ languageOptionParser :: Language -> Parser (Dual (Endo ExecuteOptions))
 languageOptionParser language =
     flag mempty (languageExecuteOptions language) $ mconcat
         [ long shown
-        , help $ "Parse and execute " <> shownTag <> " code blocks" <> suffix
+        , help $ "Parse and execute " <> shownTag <> " code-blocks" <> suffix
         ]
   where
     shownTag = unpack $ languageCodeBlockTag language
