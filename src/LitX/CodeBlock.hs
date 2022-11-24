@@ -6,6 +6,7 @@ module LitX.CodeBlock
     , codeBlockPath
     , codeBlockLine
     , codeBlockContent
+    , updateCodeBlock
     ) where
 
 import LitX.Prelude
@@ -35,3 +36,6 @@ codeBlockLine = cbLine
 
 codeBlockContent :: CodeBlock -> Text
 codeBlockContent = cbContent
+
+updateCodeBlock :: CodeBlock -> Text -> CodeBlock
+updateCodeBlock cb t = cb { cbContent = t }

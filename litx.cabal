@@ -33,6 +33,7 @@ library
       LitX.Execute.Options
       LitX.Interactive
       LitX.Interactive.Class
+      LitX.Interactive.Editor
       LitX.Language
       LitX.Options
       LitX.Parse
@@ -84,6 +85,7 @@ library
     , shellwords
     , text
     , typed-process
+    , unliftio
     , unliftio-core
   default-language: Haskell2010
 

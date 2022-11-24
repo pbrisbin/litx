@@ -8,6 +8,7 @@ module LitX.Interactive.Class
 
 import LitX.Prelude
 
+import Control.Monad.IO.Unlift (MonadUnliftIO(..))
 import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Resource (MonadResource(..), ResourceT, runResourceT)
 import System.Console.Haskeline (InputT, defaultSettings, runInputT)
@@ -25,6 +26,10 @@ newtype InteractiveIO a = InteractiveIO
 
 instance MonadResource InteractiveIO where
     liftResourceT = InteractiveIO . lift . liftResourceT
+
+instance MonadUnliftIO InteractiveIO where
+    withRunInIO inner = InteractiveIO $ lift $ withRunInIO $ \run ->
+        inner (run . runInputT defaultSettings . unInteractiveIO)
 
 runInteractiveIO :: MonadIO m => InteractiveIO a -> m a
 runInteractiveIO =

@@ -8,6 +8,7 @@ import Conduit
 import qualified Data.Text as T
 import LitX.CodeBlock
 import LitX.Interactive.Class
+import LitX.Interactive.Editor
 
 data InteractiveState
     = Prompting
@@ -18,25 +19,30 @@ data PromptResult
     | ExecuteRest
     | Skip
     | SkipRest
-    -- | Edit
+    | Edit
 
 filter :: ConduitT CodeBlock CodeBlock InteractiveIO ()
 filter = loop Prompting
   where
     loop = \case
-        Prompting -> do
-            mBlock <- await
-
-            for_ mBlock $ \block -> do
-                result <- lift $ promptCodeBlock block
-
-                case result of
-                    Execute -> yieldAndLoopWith Prompting block
-                    ExecuteRest -> yieldAndLoopWith Executing block
-                    Skip -> loop Prompting
-                    SkipRest -> pure ()
-
+        Prompting -> traverse_ handleBlock =<< await
         Executing -> passC
+
+    handleBlock block = do
+        result <- lift $ promptCodeBlock block
+
+        case result of
+            Execute -> yieldAndLoopWith Prompting block
+            ExecuteRest -> yieldAndLoopWith Executing block
+            Skip -> loop Prompting
+            SkipRest -> pure ()
+            Edit -> do
+                eUpdatedBlock <- lift $ editCodeBlock block
+                case eUpdatedBlock of
+                    Left err -> do
+                        lift $ outputTextLn $ "Failure invoking editor: " <> err
+                        handleBlock block
+                    Right updatedBlock -> handleBlock updatedBlock
 
     yieldAndLoopWith x block = do
         lift $ outputTextLn ""
@@ -55,9 +61,10 @@ promptCodeBlock block = do
     case c of
         Nothing -> promptCodeBlock block
         Just 'y' -> pure Execute
-        Just 'n' -> pure Skip
         Just 'a' -> pure ExecuteRest
+        Just 'n' -> pure Skip
         Just 'q' -> pure SkipRest
+        Just 'e' -> pure Edit
         _ -> do
             outputTextLn helpBlock
             promptCodeBlock block
@@ -79,6 +86,7 @@ helpBlock = T.intercalate
     , "  n: skip this block"
     , "  a: execute this and all remaining blocks"
     , "  q: skip this and all remaining blocks"
+    , "  e: edit this block and reprompt"
     , "  h: show this help"
     , ""
     ]
