@@ -61,7 +61,7 @@ litx --exec cat <./.op.md >./op.bash
 Usage: litx [-i|--input PATH|-] [--bash] [--python] [--filter-tag TEXT] 
             [--shebang TEXT] [--no-banner] [--banner TEXT] [--no-preamble] 
             [--preamble TEXT] [--comment-chars TEXT] [--exec CMD] [--arg ARG] 
-            [--no-env]
+            [--no-env] [--interactive]
   Execute Literate Markdown programs
 
 Available options:
@@ -78,6 +78,7 @@ Available options:
   --exec CMD               Execute script using CMD
   --arg ARG                Pass additional arguments when executing
   --no-env                 Don't inherit ENV in the executed process
+  --interactive            Prompt before executing each code block
   -h,--help                Show this help text
 
 See litx(1) for more details.
@@ -130,9 +131,9 @@ note it will be as of `main` and not necessarily your installed version.
 
 ## Roadmap
 
-- [ ] Add `--match=N`/`--skip=N` for skipping blocks by index
-- [ ] Add `--interactive` where blocks are shown before each execution
-- [ ] `<!-- litx: ignore -->` pragmas
+- [ ] Add `--only=N`/`--skip=N` for skipping blocks by index
+- [x] Add `--interactive` where blocks are shown before each execution
+- [x] `<!-- litx-ignore-next -->` pragma
 
 ---
 

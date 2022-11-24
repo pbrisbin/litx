@@ -125,9 +125,29 @@ Additional languages coming soon.
 
 > Don't inherit the current process's environment in the executed process.
 
+**\--interactive**\
+
+> Execute the document interactively. Each code-block is shown and the user is
+> prompted to execute or skip.
+
 # PRAGMAS
 
-LitX reads directives from HTML comment in the source documents.
+LitX reads directives from HTML comment in the source documents. There are
+currently two such pragmas,
+
+```
+<!-- litx [option...] -->
+```
+
+The first such comment, if found, will set options for this `litx` invocation;
+any others will be ignored. Pragma options are applied after inferred options
+but before command-line options.
+
+```
+<!-- litx-ignore-next -->
+```
+
+Omit the next code-block from execution.
 
 ## Options
 
@@ -147,24 +167,6 @@ for command-line flags:
 These options are applied after the inferred language preset, but before any
 other command-line options (including an explicit language preset). *All* words
 will be considered options, so ensure there is not extra content in the comment.
-
-# ENVIRONMENT
-
-**LOG_LEVEL**=*error|warn|info|debug|trace*\
-
-> Default is *info*.
-
-**LOG_FORMAT**=*tty|json*\
-
-> Default is *tty*.
-
-**LOG_COLOR**=*always|never|auto*\
-
-> Default is *auto*.
-
-**LOG_DESTINATION**=*stdout|stderr|@\<path\>*\
-
-> Default is *stdout*.
 
 # AUTHOR
 
